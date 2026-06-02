@@ -192,7 +192,7 @@
 
       <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
         <div class="p-3 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
-          <h3 class="text-xs font-bold font-mono">REKAP NILAI REAL-TIME CLUID</h3>
+          <h3 class="text-xs font-bold font-mono">REKAP NILAI REAL-TIME CLOUD</h3>
           <select id="adminFilterKelas" onchange="renderAdminTable()" class="bg-slate-950 border border-slate-800 text-[11px] rounded p-1 focus:outline-none cursor-pointer">
             <option value="Semua">Semua Kelas</option>
             <option value="X RPL A">X RPL A</option>
@@ -228,7 +228,7 @@
   </footer>
 
   <script>
-    // 1. KREDENSIAL FIREBASE CLOUD REALTIME (PERBAIKAN: DATABASE URL DITAMBAHKAN)
+    // 1. KREDENSIAL FIREBASE CLOUD REALTIME SESUAI DATA ASLI USER
     const firebaseConfig = {
       apiKey: "AIzaSyA0JMd4wG3jJ8R7AODP1k3NAOsjJiGYPy8",
       authDomain: "smknekas-2026.firebaseapp.com",
@@ -237,16 +237,16 @@
       messagingSenderId: "487609232066",
       appId: "1:487609232066:web:564dfdf411cbdabf6d295b",
       measurementId: "G-8XQM3BKBWL",
-      databaseURL: "https://smknekas-2026-default-rtdb.firebaseio.com" // <-- JALUR UTAMA DATABASE REALTIME NYA DI SINI
+      databaseURL: "https://smknekas-2026-default-rtdb.firebaseio.com"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 2. DATA INSTRUMEN SOAL SAFE TEXT CODES
+    // 2. DATA INSTRUMEN SOAL
     const SOAL_EXAM = {
       pilihanGanda: [
-        { id: "pg1", pertanyaan: "Diberikan potongan kode: <code class='bg-slate-900 text-amber-400 px-1 rounded'>&lt;a href='contact.html'&gt; &lt;img src='mail.png' alt='Hubungi Kami'&gt; &lt;/a&gt;</code>. Mengapa struktur penulisan elemen ini dianggap sebagai praktik terbaik (best practice) dalam aksesibilitas web?", pilihan: { A: "Because tag gambar memaksa browser membuat baris baru di dalam link.", B: "Atribut alt memberikan deskripsi alternatif bagi pengguna pembaca layar (screen reader) saat gambar berfungsi sebagai tautan.", C: "Karena elemen a tidak boleh berdiri sendiri tanpa adanya elemen gambar di dalamnya.", D: "Penggunaan tag gambar di dalam link secara otomatis mempercepat waktu pemuatan halaman web." }, jawabanBenar: "B" },
+        { id: "pg1", pertanyaan: "Diberikan potongan kode: <code class='bg-slate-900 text-amber-400 px-1 rounded'>&lt;a href='contact.html'&gt; &lt;img src='mail.png' alt='Hubungi Kami'&gt; &lt;/a&gt;</code>. Mengapa struktur penulisan elemen ini dianggap sebagai praktik terbaik (best practice) dalam aksesibilitas web?", pilihan: { A: "Karena tag gambar memaksa browser membuat baris baru di dalam link.", B: "Atribut alt memberikan deskripsi alternatif bagi pengguna pembaca layar (screen reader) saat gambar berfungsi sebagai tautan.", C: "Karena elemen a tidak boleh berdiri sendiri tanpa adanya elemen gambar di dalamnya.", D: "Penggunaan tag gambar di dalam link secara otomatis mempercepat waktu pemuatan halaman web." }, jawabanBenar: "B" },
         { id: "pg2", pertanyaan: "Seorang siswa menulis kode berikut:<br><pre class='bg-slate-900 text-indigo-300 p-2 rounded mt-1 font-mono text-[11px]'>&lt;ul type='1'&gt;\n  &lt;li&gt;Analisis&lt;/li&gt;\n  &lt;li&gt;Desain&lt;/li&gt;\n&lt;/ul&gt;</pre>Namun, daftar yang muncul tetap menggunakan simbol bullet bulat, bukan angka. Analisis mengapa kesalahan ini terjadi!", pilihan: { A: "Tag ul hanya mendukung type 'disc', 'circle', dan 'square'. Jika ingin daftar berangka (1, 2, 3), harus menggunakan tag &lt;ol&gt;.", B: "Browser tidak mendukung atribut type pada elemen list.", C: "Atribut type harus diletakkan pada tag list, bukan pada tag pembuka ul.", D: "Siswa lupa menutup tag ul dengan tag list." }, jawabanBenar: "A" },
         { id: "pg3", pertanyaan: "Perhatikan cuplikan dokumen berikut:<br><code class='bg-slate-900 text-red-400 p-1 rounded font-mono text-[11px]'>&lt;div&gt;&lt;p&gt;Paragraf Pertama &lt;span&gt;di dalam span&lt;/p&gt; yang terputus&lt;/span&gt;&lt;/div&gt;</code><br>Bagaimana browser modern merender kode HTML yang memiliki tumpang tindih (overlapping tags) seperti di atas?", pilihan: { A: "Browser akan menghentikan proses rendering halaman dan menampilkan error fatal (white screen).", B: "Tag span otomatis dihapus dan teks di dalamnya digabungkan ke elemen div terluar.", C: "Browser melakukan auto-correction DOM tree, tetapi berisiko merusak struktur layout CSS karena penutupan elemen yang tidak valid secara semantik.", D: "Browser akan menampilkan pesan pop-up peringatan kepada pengunjung web mengenai kerusakan tag." }, jawabanBenar: "C" },
         { id: "pg4", pertanyaan: "Anda ingin membuat form pencarian yang secara otomatis mengarahkan fokus kursor ke input teks segera setelah halaman web dimuat tanpa mengharuskan pengguna mengekliknya terlebih dahulu. Atribut HTML5 mana yang paling efisien digunakan?", pilihan: { A: "&lt;input type='text' focus='true'&gt;", B: "&lt;input type='text' autofocus&gt;", C: "&lt;input type='text' required&gt;", D: "&lt;input type='text' placeholder='Cari...' active&gt;" }, jawabanBenar: "B" },
@@ -262,7 +262,7 @@
         { id: "essay2", pertanyaan: "Analisislah kode HTML di bawah ini. Temukan minimal 3 kesalahan sintaksis atau ketidakpatuhan semantik, lalu tuliskan kode perbaikan yang benar!<br><pre class='bg-slate-900 text-red-400 p-2 rounded mt-1 font-mono text-[11px]'>&lt;font size='5'&gt;&lt;b&gt;Form Pencarian&lt;/font&gt;&lt;/b&gt;\n&lt;form action='search.php'&gt;\n  &lt;input type='text' id='cari'&gt;\n  &lt;button type='submit'&gt;Cari\n&lt;/form&gt;</pre>" },
         { id: "essay3", pertanyaan: "Rancanglah struktur tabel HTML untuk jadwal pelajaran kelas X RPL. Tabel harus memiliki 3 baris dan 3 kolom. Baris pertama adalah Header (Mata Pelajaran, Kelas, Jam Mulai). Gunakan atribut 'border' bernilai '1' pada tag table." },
         { id: "essay4", pertanyaan: "Jelaskan mengapa atribut 'alt' pada tag &lt;img&gt; sangat krusial dalam Search Engine Optimization (SEO) dan aksesibilitas bagi penyandang disabilitas (tunanetra) yang menggunakan screen reader!" },
-        { id: "essay5", pertanyaan: "Buatlah struktur dasar dokumen HTML5 yang valid secara standar W3C dari awal hingga akhir, lengkap dengan deklarasi tipe dokumen, penentuan bahasa indonesia, dan tag meta penyesuai layar ponsel (viewport responsive)!" }
+        { id: "essay5", burns: "", pertanyaan: "Buatlah struktur dasar dokumen HTML5 yang valid secara standar W3C dari awal hingga akhir, lengkap dengan deklarasi tipe dokumen, penentuan bahasa indonesia, dan tag meta penyesuai layar ponsel (viewport responsive)!" }
       ]
     };
 
@@ -276,8 +276,8 @@
     let gameSpawnId = null;
     let cheatAttempts = 0;
 
-    // --- STREAMING LIVE FIREBASE UNTUK REKAP GURU ---
-    db.ref("rekap_siswa").on("value", (snapshot) => {
+    // --- STREAMING LIVE DARI REKAP_UJIAN (SESUAI DENGAN SCREENSHOT USER) ---
+    db.ref("rekap_ujian").on("value", (snapshot) => {
       listSiswaCloud = [];
       if (snapshot.exists()) {
         const data = snapshot.val();
@@ -330,13 +330,13 @@
     window.loginSiswa = function(e) {
       e.preventDefault();
       currentSiswa = {
-        nama: document.getElementById("siswaNama").value,
-        kelas: document.getElementById("siswaKelas").value,
-        absen: document.getElementById("siswaAbsen").value
+        name: document.getElementById("siswaNama").value,
+        class: document.getElementById("siswaKelas").value,
+        absent: document.getElementById("siswaAbsen").value
       };
       document.getElementById("userBadge").innerText = "SISWA";
       document.getElementById("userBadge").className = "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded text-[10px]";
-      document.getElementById("currentUserName").innerText = `${currentSiswa.nama} (${currentSiswa.kelas})`;
+      document.getElementById("currentUserName").innerText = `${currentSiswa.name} (${currentSiswa.class})`;
       document.getElementById("headerUserInfo").classList.remove("hidden");
       
       buildExamPaper();
@@ -374,7 +374,7 @@
       });
     }
 
-    // --- KIRIM JAWABAN & SUBMIT KE FIREBASE ---
+    // --- KIRIM JAWABAN & SUBMIT KE FIREBASE (STRUKTUR BAHASA INGGRIS SESUAI SCREENSHOT) ---
     window.submitUjian = function() {
       examActive = false; closeMiniGame();
 
@@ -403,19 +403,20 @@
       const bonusPoin = Math.min(5, Math.floor(gameScore / 40));
       const skorTotalFinal = Math.min(100, Math.round((skorPG + skorEsaiRata) / 2) + bonusPoin);
 
+      // Payload disesuaikan penuh ke database asli Anda (Bahasa Inggris properti)
       const payloadCloud = {
-        nama: currentSiswa.nama,
-        kelas: currentSiswa.kelas,
-        absen: currentSiswa.absen,
-        skorPG: skorPG,
-        skorEssay: skorEsaiRata,
-        skorTotal: skorTotalFinal,
-        cheatAttempts: cheatAttempts,
+        name: currentSiswa.name,
+        class: currentSiswa.class,
+        absent: parseInt(currentSiswa.absent) || 0,
+        scorePG: skorPG,
+        scoreEssay: skorEsaiRata,
+        scoreTotal: skorTotalFinal,
+        cheat: cheatAttempts,
         waktuMulai: `Pukul ${new Date().toLocaleTimeString('id-ID')}`
       };
 
-      // Jalur pengiriman data aman cloud
-      db.ref("rekap_siswa").push(payloadCloud);
+      // Folder tujuan disesuaikan ke: rekap_ujian
+      db.ref("rekap_ujian").push(payloadCloud);
 
       document.getElementById("resSkorPG").innerText = skorPG;
       document.getElementById("resSkorEssay").innerText = skorEsaiRata;
@@ -425,24 +426,34 @@
       switchView("resultPage");
     }
 
-    // --- REKAP TABEL GURU REAL-TIME ---
+    // --- REKAP TABEL GURU REAL-TIME (PARSING PROPERTY DATABASE USER) ---
     window.renderAdminTable = function() {
       const filter = document.getElementById("adminFilterKelas").value;
       const tbody = document.getElementById("adminTableBody");
       tbody.innerHTML = "";
 
-      let matchedSiswa = listSiswaCloud.filter(s => filter === "Semua" || s.kelas === filter);
+      // Membaca property sesuai screenshot: s.class
+      let matchedSiswa = listSiswaCloud.filter(s => filter === "Semua" || s.class === filter);
       document.getElementById("statTotalSiswa").innerText = matchedSiswa.length;
 
       matchedSiswa.forEach(s => {
+        // Fallback pencarian properti jika ada perbedaan huruf besar/kecil di data lama
+        const absenSiswa = s.absent !== undefined ? s.absent : (s.absen || '0');
+        const namaSiswa = s.name || s.nama || 'Tanpa Nama';
+        const kelasSiswa = s.class || s.kelas || '-';
+        const pgSiswa = s.scorePG !== undefined ? s.scorePG : (s.skorPG || 0);
+        const essaySiswa = s.scoreEssay !== undefined ? s.scoreEssay : (s.skorEssay || 0);
+        const totalSiswa = s.scoreTotal !== undefined ? s.scoreTotal : (s.skorTotal || 0);
+        const cheatSiswa = s.cheat !== undefined ? s.cheat : (s.cheatAttempts || 0);
+
         tbody.innerHTML += `<tr class="hover:bg-slate-900/40 border-b border-slate-800/40 font-mono">
-          <td class="p-3 text-center text-slate-400 font-bold">${s.absen || '0'}</td>
-          <td class="p-3 font-sans font-bold text-slate-100">${s.nama}</td>
-          <td class="p-3 text-indigo-400">${s.kelas}</td>
-          <td class="p-3 text-center">${s.skorPG}</td>
-          <td class="p-3 text-center">${s.skorEssay}</td>
-          <td class="p-3 text-center"><span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold">${s.skorTotal}</span></td>
-          <td class="p-3 text-center text-red-400 font-bold">${s.cheatAttempts || 0}x</td>
+          <td class="p-3 text-center text-slate-400 font-bold">${absenSiswa}</td>
+          <td class="p-3 font-sans font-bold text-slate-100">${namaSiswa}</td>
+          <td class="p-3 text-indigo-400">${kelasSiswa}</td>
+          <td class="p-3 text-center">${pgSiswa}</td>
+          <td class="p-3 text-center">${essaySiswa}</td>
+          <td class="p-3 text-center"><span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold">${totalSiswa}</span></td>
+          <td class="p-3 text-center text-red-400 font-bold">${cheatSiswa}x</td>
           <td class="p-3 text-right">
             <button onclick="hapusPeserta('${s.id}')" class="text-red-400 hover:text-red-300 text-[11px] underline cursor-pointer">Hapus</button>
           </td>
@@ -450,17 +461,17 @@
       });
 
       if(matchedSiswa.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-xs text-slate-500 italic">Belum ada data masuk di folder cloud 'rekap_siswa'.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-xs text-slate-500 italic">Belum ada data masuk di folder cloud 'rekap_ujian'.</td></tr>`;
       }
     }
 
     window.hapusPeserta = function(id) {
       if(confirm("Hapus rekam data siswa ini dari Cloud Firebase?")) {
-        db.ref(`rekap_siswa/${id}`).remove();
+        db.ref(`rekap_ujian/${id}`).remove();
       }
     }
 
-    // --- MINI GAME REFLECTION WORK ---
+    // --- MINI GAME LOOP ---
     window.openMiniGame = function() { document.getElementById("miniGameContainer").classList.remove("hidden"); }
     window.closeMiniGame = function() { stopGame(); document.getElementById("miniGameContainer").classList.add("hidden"); }
     
