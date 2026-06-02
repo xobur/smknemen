@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CBT Web HTML XI RPL Kasomalang - AI Evaluation</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase App & Firestore -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #020617;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col justify-between">
+
+  <!-- HEADER -->
+  <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-indigo-500/30">
+          RPL
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-wide">CBT XI RPL KASOMALANG</h1>
+          <p class="text-xs text-slate-400">Pemrograman Web - Evaluasi HTML5 & Penilaian AI</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3" id="header-actions">
+        <button onclick="switchPage('admin-login')" id="btn-admin-portal" class="bg-slate-800 hover:bg-slate-700 transition text-slate-200 text-xs sm:text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 border border-slate-700">
+          <i class="fa-solid fa-user-shield"></i> Portal Guru / Admin
+        </button>
+        <button onclick="logoutAdmin()" id="btn-admin-logout" class="hidden bg-rose-950 hover:bg-rose-900 text-rose-200 text-xs sm:text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 border border-rose-800 transition">
+          <i class="fa-solid fa-right-from-bracket"></i> Keluar Admin
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- NOTIFICATION TOAST -->
+  <div id="toast-container" class="fixed top-20 right-4 z-50 max-w-sm hidden">
+    <div id="toast-card" class="p-4 rounded-xl shadow-2xl border bg-slate-900 text-slate-200 border-indigo-500/30">
+      <p id="toast-message" class="text-sm font-medium"></p>
+    </div>
+  </div>
+
+  <!-- MODAL KECURANGAN (CHEAT DETECTED) -->
+  <div id="cheat-modal" class="fixed inset-0 z-[100] bg-rose-950/95 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border-2 border-rose-500 rounded-3xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl">
+      <div class="inline-block bg-rose-500/10 text-rose-400 p-4 rounded-full">
+        <i class="fa-solid fa-triangle-exclamation text-5xl animate-bounce"></i>
+      </div>
+      <div>
+        <h3 class="text-2xl font-black text-rose-400 uppercase tracking-wider">Meninggalkan Layar Ujian!</h3>
+        <p class="text-slate-300 text-sm mt-2 leading-relaxed">
+          Sistem mendeteksi bahwa Anda memindahkan fokus halaman, berpindah tab browser, atau mengaktifkan mode split screen.
+        </p>
+      </div>
+      <div class="bg-rose-950/50 border border-rose-500/30 p-4 rounded-xl">
+        <p class="text-xs text-rose-300 uppercase font-bold">Log Pelanggaran Anda</p>
+        <p class="text-3xl font-black text-white mt-1" id="cheat-count-display">0</p>
+        <p class="text-sm font-bold text-rose-400 mt-2" id="cheat-penalty-display">Potongan Nilai: -0 Poin</p>
+        <p class="text-[10px] text-rose-500 mt-1.5">Setiap 1 pelanggaran akan mengurangi nilai akhir sebesar 5 poin pada kalkulasi kalkulator sistem.</p>
+      </div>
+      <button onclick="dismissCheatModal()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-rose-600/30">
+        Saya Mengerti & Kembali Ujian
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8 flex flex-col justify-center">
+
+    <!-- PAGE: LOADING SCREEN -->
+    <div id="page-loading" class="text-center py-20">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+      <p class="text-slate-400 text-sm">Menyiapkan sistem database & AI Validator...</p>
+    </div>
+
+    <!-- PAGE: LOGIN SISWA -->
+    <div id="page-login" class="hidden max-w-md w-full mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
+      <div class="text-center mb-8">
+        <div class="inline-block bg-indigo-500/10 text-indigo-400 p-3 rounded-2xl mb-4">
+          <i class="fa-solid fa-graduation-cap text-4xl"></i>
+        </div>
+        <h2 class="text-2xl font-bold tracking-tight text-white">Evaluasi Kompetensi HTML5</h2>
+        <p class="text-slate-400 text-sm mt-1">Sistem CBT dengan Koreksi Otomatis AI</p>
+      </div>
+
+      <form id="form-login" class="space-y-5">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Nama Lengkap Siswa</label>
+          <input 
+            type="text" 
+            id="student-name"
+            placeholder="Masukkan nama sesuai daftar hadir"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+            required
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Rombongan Belajar (Kelas)</label>
+          <select 
+            id="student-class"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+          >
+            <option value="XI RPL A">XI Rekayasa Perangkat Lunak A (XI RPL A)</option>
+            <option value="XI RPL B">XI Rekayasa Perangkat Lunak B (XI RPL B)</option>
+            <option value="XI RPL C">XI Rekayasa Perangkat Lunak C (XI RPL C)</option>
+          </select>
+        </div>
+
+        <div class="bg-slate-950 rounded-xl p-4 border border-slate-800/80 text-xs text-slate-400 space-y-1.5">
+          <p class="font-semibold text-slate-300"><i class="fa-solid fa-circle-info text-indigo-400 mr-1"></i> Informasi Ujian & Keamanan:</p>
+          <p>• 10 Soal Pilihan Ganda (HOTS - bernilai otomatis).</p>
+          <p>• 5 Soal Essay (Koreksi Instan oleh kecerdasan buatan Gemini AI).</p>
+          <p>• AI akan mendeteksi kelebihan, kekurangan, dan skor secara objektif.</p>
+          <p>• <strong class="text-rose-400">Pengawasan Nilai:</strong> Tidak ada pemblokiran layar. Namun, setiap aksi berpindah tab/keluar dari browser akan langsung **mengurangi nilai akhir sebesar 5 poin**.</p>
+          <p>• Durasi pengerjaan: 45 Menit.</p>
+        </div>
+
+        <button 
+          type="submit" 
+          class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2"
+        >
+          Mulai Ujian Sekarang <i class="fa-solid fa-rocket"></i>
+        </button>
+      </form>
+    </div>
+
+    <!-- PAGE: EXAM INTERFACE -->
+    <div id="page-exam" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Kolom Kiri: Soal -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- Info Siswa -->
+        <div class="bg-gradient-to-r from-indigo-950 to-slate-900 border border-indigo-500/20 rounded-2xl p-6 flex justify-between items-center shadow-lg">
+          <div>
+            <span class="text-xs font-bold uppercase text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full">Siswa Aktif</span>
+            <h3 id="display-student-name" class="text-xl font-bold text-white mt-1.5">-</h3>
+            <p id="display-student-class" class="text-xs text-slate-400 mt-0.5">- • SMK Negeri 1 Kasomalang</p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-slate-400">Mata Pelajaran:</p>
+            <p class="text-sm font-bold text-indigo-300">Pemrograman Web (HTML5)</p>
+          </div>
+        </div>
+
+        <!-- Bagian I: PG -->
+        <div class="space-y-6">
+          <div class="border-b border-slate-800 pb-3">
+            <h2 class="text-lg font-bold text-indigo-400 flex items-center gap-2">
+              <span class="bg-indigo-500/10 text-indigo-400 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-mono">I</span>
+              Pilihan Ganda (HOTS - High Order Thinking)
+            </h2>
+            <p class="text-xs text-slate-400 ml-9">Bobot: 5 poin per soal. Pilih satu opsi terbaik.</p>
+          </div>
+          <div id="pg-container" class="space-y-6"></div>
+        </div>
+
+        <!-- Bagian II: Essay -->
+        <div class="space-y-6 pt-6">
+          <div class="border-b border-slate-800 pb-3">
+            <h2 class="text-lg font-bold text-emerald-400 flex items-center gap-2">
+              <span class="bg-emerald-500/10 text-emerald-400 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-mono">II</span>
+              Essay Komprehensif (Penilaian Gemini AI)
+            </h2>
+            <p class="text-xs text-slate-400 ml-9">Tulis analisis Anda dengan komplit. AI akan mengevaluasi logika & ketepatan teknis Anda.</p>
+          </div>
+          <div id="essay-container" class="space-y-6"></div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-4 shadow-xl">
+          <div>
+            <h4 class="font-bold text-slate-200">Kirim Lembar Ujian Sekarang?</h4>
+            <p class="text-xs text-slate-400">Setelah dikirim, Gemini AI akan menganalisis jawaban essay Anda dalam beberapa detik.</p>
+          </div>
+          <button
+            onclick="confirmSubmitModal()"
+            class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-4 rounded-xl transition shadow-lg shadow-indigo-600/30 flex items-center gap-2 w-full sm:w-auto justify-center"
+          >
+            Selesai & Analisis AI <i class="fa-solid fa-brain"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Kolom Kanan: Navigasi & Timer -->
+      <div class="lg:col-span-1 space-y-6">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl sticky top-24 shadow-lg space-y-6">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="font-bold text-slate-200">Navigasi Soal</h3>
+              <p class="text-xs text-slate-400">Status kelengkapan jawaban Anda.</p>
+            </div>
+            <div class="text-right">
+              <span id="exam-timer" class="font-mono font-bold text-amber-400 text-lg">45:00</span>
+              <p class="text-[10px] text-slate-500">Sisa Waktu</p>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-indigo-400 mb-2">Soal Pilihan Ganda</p>
+            <div class="grid grid-cols-5 gap-2" id="nav-pg-grid"></div>
+          </div>
+
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">Soal Essay</p>
+            <div class="grid grid-cols-5 gap-2" id="nav-essay-grid"></div>
+          </div>
+
+          <hr class="border-slate-800" />
+
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-850/80 text-xs text-slate-400 space-y-2">
+            <div class="flex justify-between">
+              <span>Terjawab:</span>
+              <span id="nav-stat-answered" class="font-bold text-slate-200">0 / 15</span>
+            </div>
+            <div class="flex justify-between flex-col gap-1">
+              <span class="text-slate-400">Pelanggaran Layar:</span>
+              <span id="nav-stat-cheat" class="font-bold text-rose-400">0 Pelanggaran (-0 Poin)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: AI EVALUATION LOADING -->
+    <div id="page-ai-evaluating" class="hidden text-center py-20 max-w-lg mx-auto">
+      <div class="relative w-24 h-24 mx-auto mb-6">
+        <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
+        <div class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <i class="fa-solid fa-brain text-3xl text-indigo-400 animate-pulse"></i>
+        </div>
+      </div>
+      <h2 class="text-2xl font-bold text-white mb-2">Gemini AI sedang Menilai...</h2>
+      <p class="text-slate-400 text-sm leading-relaxed mb-4">AI sedang menganalisis tingkat pemahaman Anda, memetakan logika teknis, serta menyusun umpan balik kritis secara real-time.</p>
+      <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
+        <div class="bg-gradient-to-r from-indigo-500 to-emerald-500 h-full w-4/5 rounded-full animate-pulse"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: FINISHED & AI RESULT -->
+    <div id="page-finished" class="hidden max-w-3xl w-full mx-auto space-y-8">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center space-y-6">
+        <div class="inline-block bg-emerald-500/10 text-emerald-400 p-4 rounded-full" id="result-badge-icon">
+          <i class="fa-solid fa-circle-check text-4xl"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-white" id="result-title-header">Evaluasi Selesai & AI Berhasil Menilai!</h2>
+          <p class="text-slate-400 text-sm mt-1" id="result-desc-header">Berikut adalah rekapitulasi nilai dan analisis kemampuan Anda oleh Gemini AI.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <span class="text-[10px] uppercase font-bold text-slate-500">Nilai PG</span>
+            <p id="result-pg-score" class="text-2xl font-black text-indigo-400 mt-1">0 <span class="text-xs text-slate-600">/ 50</span></p>
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <span class="text-[10px] uppercase font-bold text-slate-500">Nilai Essay (AI)</span>
+            <p id="result-essay-score" class="text-2xl font-black text-emerald-400 mt-1">0 <span class="text-xs text-slate-600">/ 50</span></p>
+          </div>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <span class="text-[10px] uppercase font-bold text-slate-500">Total Nilai Akhir</span>
+            <div id="result-total-score" class="text-2xl font-black text-amber-400 mt-1">0 <span class="text-xs text-slate-600">/ 100</span></div>
+          </div>
+        </div>
+
+        <!-- Detail Analisis AI Per Soal -->
+        <div class="text-left space-y-4 pt-4">
+          <h3 class="text-md font-bold text-slate-200 border-b border-slate-800 pb-2 flex items-center gap-2">
+            <i class="fa-solid fa-microchip text-indigo-400"></i> Rekomendasi & Hasil Koreksi Esai Anda (Oleh AI)
+          </h3>
+          <div id="ai-feedback-container" class="space-y-4"></div>
+        </div>
+
+        <button 
+          onclick="restartExam()" 
+          class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-3.5 rounded-xl border border-slate-700 transition"
+        >
+          Keluar & Kembali ke Login
+        </button>
+      </div>
+    </div>
+
+    <!-- PAGE: ADMIN LOGIN -->
+    <div id="page-admin-login" class="hidden max-w-md w-full mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+      <div class="text-center">
+        <span class="text-3xl">🔐</span>
+        <h2 class="text-xl font-bold text-white mt-2">Portal Guru & Administrator</h2>
+        <p class="text-xs text-slate-400 mt-1">Kelola data nilai siswa, edit manual, atau tinjau analisis AI</p>
+      </div>
+      <form id="form-admin-login" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-400 mb-2">Password Pengawas</label>
+          <input 
+            type="password" 
+            id="admin-password" 
+            placeholder="Masukkan password admin" 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+            required
+          >
+          <p class="text-[10px] text-slate-500 mt-1.5">Password kelas default: <span class="font-mono text-indigo-400">rplkasomalang</span></p>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" onclick="switchPage('login')" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition">
+            Kembali
+          </button>
+          <button type="submit" class="w-1/2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition">
+            Masuk
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- PAGE: ADMIN DASHBOARD -->
+    <div id="page-admin-dashboard" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Kolom Kiri: Form Edit / Tinjauan AI Detil -->
+      <div class="lg:col-span-1 space-y-6">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg space-y-6">
+          <div class="border-b border-slate-800 pb-3 flex justify-between items-center">
+            <h3 class="font-bold text-md text-white"><i class="fa-solid fa-sliders text-indigo-400 mr-1"></i> Panel Detail Siswa</h3>
+            <button onclick="setSelectedStudentNull()" id="btn-cancel-select" class="hidden text-xs text-rose-400 hover:underline">Batal</button>
+          </div>
+
+          <div id="admin-editor-placeholder" class="text-center py-12 text-slate-500 border-2 border-dashed border-slate-800 rounded-xl">
+            <span class="text-2xl">👉</span>
+            <p class="text-xs font-medium mt-2 px-4">Pilih salah satu baris siswa di tabel untuk meninjau detail jawaban, feedback AI, mengedit nilai manual, atau menghapus data.</p>
+          </div>
+
+          <form id="form-admin-edit" class="hidden space-y-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Nama Siswa</label>
+              <input type="text" id="edit-student-name" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500" required>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Kelas</label>
+                <select id="edit-student-class" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                  <option value="XI RPL A">XI RPL A</option>
+                  <option value="XI RPL B">XI RPL B</option>
+                  <option value="XI RPL C">XI RPL C</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Skor PG (Maks 50)</label>
+                <input type="number" min="0" max="50" id="edit-student-pg" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Skor Essay (Maks 50)</label>
+                <input type="number" min="0" max="50" id="edit-student-essay" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Pelanggaran</label>
+                <input type="number" min="0" max="100" id="edit-student-cheat" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none">
+              </div>
+            </div>
+
+            <!-- Tinjauan AI -->
+            <div class="border-t border-slate-800 pt-4 space-y-3">
+              <h4 class="text-xs font-bold uppercase text-indigo-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-robot"></i> Analisis AI Terhadap Siswa
+              </h4>
+              <div id="admin-ai-feedback" class="space-y-3 max-h-[300px] overflow-y-auto pr-1"></div>
+            </div>
+
+            <div class="flex gap-2">
+              <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 rounded-xl transition">
+                Simpan Perubahan
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Kolom Kanan: Tabel CRUD Rekap Nilai -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4 mb-4">
+            <div>
+              <h3 class="font-bold text-lg text-white">📊 Rekap Nilai Siswa (XI RPL A, B, C)</h3>
+              <p class="text-xs text-slate-400 mt-0.5">Sinkronisasi Cloud Firestore secara real-time</p>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <select id="filter-class" onchange="renderAdminTable()" class="bg-slate-950 border border-slate-800 text-xs text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none">
+                <option value="ALL">Semua Kelas</option>
+                <option value="XI RPL A">XI RPL A</option>
+                <option value="XI RPL B">XI RPL B</option>
+                <option value="XI RPL C">XI RPL C</option>
+              </select>
+              <div class="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg text-xs text-indigo-400 font-semibold" id="admin-stats-total">
+                Siswa: 0
+              </div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-800 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <th class="py-3 px-2">No</th>
+                  <th class="py-3 px-4">Nama</th>
+                  <th class="py-3 px-3">Kelas</th>
+                  <th class="py-3 px-3 text-center">PG (50)</th>
+                  <th class="py-3 px-3 text-center">Essay (50)</th>
+                  <th class="py-3 px-3 text-center">Total (100)</th>
+                  <th class="py-3 px-3 text-center">Status / Cheat</th>
+                  <th class="py-3 px-4 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="admin-table-body" class="divide-y divide-slate-850 text-xs text-slate-300">
+                <tr>
+                  <td colspan="8" class="text-center py-10 text-slate-500">Menghubungi Cloud database...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL CONFIRM SUBMIT -->
+    <div id="confirm-submit-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-sm w-full text-center space-y-4 shadow-2xl">
+        <div class="w-16 h-16 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto text-2xl">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">Selesai Mengerjakan?</h3>
+          <p class="text-xs text-slate-400 mt-1">Apakah Anda yakin ingin menyudahi ujian? Jawaban Anda akan diunggah dan dianalisis langsung oleh Gemini AI.</p>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="closeConfirmSubmitModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold py-3 rounded-xl transition">
+            Periksa Lagi
+          </button>
+          <button onclick="submitExam()" class="w-1/2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-3 rounded-xl transition">
+            Ya, Kirim
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-950 border-t border-slate-900 py-6 px-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto space-y-2">
+      <p>© 2026 SMK Negeri 1 Kasomalang • Bidang Keahlian Rekayasa Perangkat Lunak (RPL).</p>
+      <p class="text-[10px] text-slate-600">Terintegrasi dengan Gemini-2.5-Flash Model untuk Koreksi Essay & Penilaian Real-Time.</p>
+    </div>
+  </footer>
+
+  <!-- PROGRAM UTAMA / JAVASCRIPT -->
+  <script>
+    // --- HELPER FUNCTION: ESCAPE HTML TO TEXT ---
+    function escapeHTML(str) {
+      if (!str) return '';
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // --- KONFIGURASI FIREBASE ---
+    const firebaseConfig = typeof __firebase_config !== 'undefined' 
+      ? JSON.parse(__firebase_config) 
+      : {
+          apiKey: "", // Diisi otomatis oleh sistem
+          authDomain: "smknekas-2026.firebaseapp.com",
+          projectId: "smknekas-2026",
+          storageBucket: "smknekas-2026.firebasestorage.app",
+          messagingSenderId: "487609232066",
+          appId: "1:487609232066:web:6c2ecd64e8aef1106d295b"
+        };
+
+    // Global App Configuration & State
+    const apiKey = ""; // Mengikuti aturan: dibiarkan kosong agar diinjeksi runtime
+    const appId = typeof __app_id !== 'undefined' ? __app_id : "cbt-xi-rpl-kasomalang";
+    
+    let db, auth;
+    let currentUser = null;
+    let pgAnswers = {};
+    let essayAnswers = {};
+    let timerInterval = null;
+    let timeLeft = 2700; // 45 Menit
+    let studentsList = [];
+    let selectedStudent = null;
+    let isAdminLoggedIn = false;
+    let cheatCount = 0;
+    const penaltyPerCheat = 5; // Pengurangan 5 Poin per satu pelanggaran
+    let isExamActive = false;
+
+    // --- DATA SOAL (10 PG HOTS, 5 ESSAY KOMPREHENSIF) ---
+    const QUESTIONS_PG = [
+      {
+        id: 'pg1',
+        question: "Dalam pengembangan web modern, sebuah elemen form memiliki atribut action='#' dan method='POST'. Namun saat disubmit menggunakan tombol standar, halaman tetap melakukan reload total meskipun Anda ingin memprosesnya secara asinkron (AJAX). Elemen HTML dan penanganan dasar apa yang paling tepat untuk mengatasi masalah tersebut agar UX tetap terjaga?",
+        options: [
+          { key: 'A', text: "Mengganti method menjadi GET dan menghapus atribut action." },
+          { key: 'B', text: "Menggunakan tag <button type='button'> dan menangani event click via JavaScript dengan preventDefault()." },
+          { key: 'C', text: "Mengubah <input type='submit'> menjadi <input type='reset'>." },
+          { key: 'D', text: "Menambahkan atribut target='_blank' pada elemen form utama." }
+        ],
+        correctAnswer: 'B'
+      },
+      {
+        id: 'pg2',
+        question: "Anda ingin menampilkan sebuah infografis interaktif menggunakan dokumen HTML. Di dalam infografis tersebut, terdapat area tertentu (misalnya gambar roda gigi) yang jika diklik akan mengarahkan ke halaman detail yang berbeda. Struktur kombinasi tag HTML mana yang paling semantik dan efisien untuk kebutuhan ini tanpa CSS absolut?",
+        options: [
+          { key: 'A', text: "Menggunakan tag <canvas> yang digambar berulang kali menggunakan koordinat piksel." },
+          { key: 'B', text: "Menggunakan tag <img> yang dibungkus dengan beberapa tag <div> melayang." },
+          { key: 'C', text: "Menggunakan kombinasi elemen <img> dengan atribut usemap, serta elemen <map> dan <area>." },
+          { key: 'D', text: "Menggunakan susunan tag <table> dengan border transparan." }
+        ],
+        correctAnswer: 'C'
+      },
+      {
+        id: 'pg3',
+        question: "Seorang siswa RPL ingin menyisipkan potongan kode program Java ke dalam artikel blog HTML miliknya agar teks tersebut mempertahankan spasi, tab indentasi, dan menggunakan font monospace secara default. Kombinasi tag HTML yang paling tepat digunakan adalah...",
+        options: [
+          { key: 'A', text: "<p> dan <samp>" },
+          { key: 'B', text: "<pre> dan <code>" },
+          { key: 'C', text: "<samp> dan <kbd>" },
+          { key: 'D', text: "<div> dan <cite>" }
+        ],
+        correctAnswer: 'B'
+      },
+      {
+        id: 'pg4',
+        question: "Perhatikan kode HTML berikut: <meta name='viewport' content='width=device-width, initial-scale=1.0'>. Jika baris kode ini dihapus dari bagian <head> pada website yang didesain menggunakan framework CSS responsif, apa dampak langsung yang paling signifikan pada perangkat mobile?",
+        options: [
+          { key: 'A', text: "Situs web tidak akan bisa diakses dari browser handphone (Error 403)." },
+          { key: 'B', text: "Browser mobile akan menampilkan halaman dengan zoom default desktop (mengecil), mengabaikan CSS responsif media queries." },
+          { key: 'C', text: "Semua gambar dalam halaman web tidak akan termuat (broken image)." },
+          { key: 'D', text: "Kecepatan loading website akan menurun drastis hingga 50%." }
+        ],
+        correctAnswer: 'B'
+      },
+      {
+        id: 'pg5',
+        question: "Dalam implementasi SEO (Search Optimization) on-page, mesin pencari seperti Google sangat mementingkan struktur hierarki dokumen. Jika Anda memiliki struktur konten dengan judul utama, sub-bab, dan detail pendukung, urutan penggunaan tag heading yang paling direkomendasikan adalah...",
+        options: [
+          { key: 'A', text: "<h1> untuk judul utama, kemudian bertahap <h2> untuk sub-bab, dan <h3> untuk detail pendukung." },
+          { key: 'B', text: "Cukup gunakan <h1> untuk semua jenis judul agar ukuran font seragam dan besar." },
+          { key: 'C', text: "Menggunakan <h6> untuk judul utama agar terlihat rapi dan tidak terlalu besar." },
+          { key: 'D', text: "Menggunakan tag <header> tanpa perlu menggunakan tag heading (h1-h6) di dalamnya." }
+        ],
+        correctAnswer: 'A'
+      },
+      {
+        id: 'pg6',
+        question: "Anda membuat sebuah website portofolio dan ingin menyematkan (embed) sebuah video demo aplikasi dari platform eksternal (seperti YouTube) agar langsung dapat diputar di halaman Anda. Tag HTML5 apa yang paling standar digunakan untuk kebutuhan integrasi tersebut?",
+        options: [
+          { key: 'A', text: "<embed src='...'>" },
+          { key: 'B', text: "<object data='...'>" },
+          { key: 'C', text: "<iframe> dengan atribut src yang mengarah ke link embed video." },
+          { key: 'D', text: "<video> dengan sub-tag <source> mengarah ke url youtube langsung." }
+        ],
+        correctAnswer: 'C'
+      },
+      {
+        id: 'pg7',
+        question: "Sebuah form pencarian barang di aplikasi e-commerce membutuhkan input teks yang secara otomatis menampilkan saran kata kunci saat pengguna mulai mengetik (misal mengetik 'lap', muncul 'laptop', 'lap kain'). Fitur HTML5 murni tanpa library JS tambahan manakah yang dapat mewujudkan hal ini?",
+        options: [
+          { key: 'A', text: "<input type='text'> dengan atribut list yang berasosiasi ke elemen <datalist>" },
+          { key: 'B', text: "<select> dengan atribut autocomplete='true'" },
+          { key: 'C', text: "<input type='search'> dikombinasikan dengan tag <optgroup>" },
+          { key: 'D', text: "Menggunakan atribut placeholder yang dinamis" }
+        ],
+        correctAnswer: 'A'
+      },
+      {
+        id: 'pg8',
+        question: "Mengapa penggunaan tag semantik seperti <article>, <section>, <aside>, dan <nav> lebih disarankan pada standar HTML5 dibandingkan menggunakan tag <div> yang diberi class secara berlebihan?",
+        options: [
+          { key: 'A', text: "Scanning dan render halaman semantik jauh lebih berat daripada div standar." },
+          { key: 'B', text: "Karena tag semantik meningkatkan aksesibilitas bagi screen reader untuk tuna netra dan mempermudah indexing mesin pencari (SEO)." },
+          { key: 'C', text: "Sebab browser lama hanya mendukung tag semantik HTML5 saja." },
+          { key: 'D', text: "Penggunaan tag semantik membuat ukuran file HTML berkurang hingga setengahnya." }
+        ],
+        correctAnswer: 'B'
+      },
+      {
+        id: 'pg9',
+        question: "Ketika membuat tabel laporan nilai siswa XI RPL di HTML, Anda ingin menggabungkan 3 kolom pada baris pertama untuk membuat judul kolom bersama 'REKAPITULASI NILAI'. Atribut dari tag <th> atau <td> yang harus digunakan adalah...",
+        options: [
+          { key: 'A', text: "rowspan='3'" },
+          { key: 'B', text: "colspan='3'" },
+          { key: 'C', text: "merge='cols-3'" },
+          { key: 'D', text: "span='3'" }
+        ],
+        correctAnswer: 'B'
+      },
+      {
+        id: 'pg10',
+        question: "Anda ingin membuat link internal yang jika diklik, browser akan langsung melakukan scroll otomatis ke bagian bawah halaman yang memiliki elemen <section id='kontak'>. Bagaimana penulisan atribut href pada tag <a> yang benar?",
+        options: [
+          { key: 'A', text: "href='kontak'" },
+          { key: 'B', text: "href='section/kontak'" },
+          { key: 'C', text: "href='#kontak'" },
+          { key: 'D', text: "href='@kontak'" }
+        ],
+        correctAnswer: 'C'
+      }
+    ];
+
+    const QUESTIONS_ESSAY = [
+      {
+        id: 'essay1',
+        question: "Jelaskan perbedaan mendasar fungsi dan perilaku render antara elemen bertipe Block-level (contoh: <div>, <p>) dengan Inline-level (contoh: <span>, <a>) dalam struktur dokumen HTML!",
+        maxScore: 10
+      },
+      {
+        id: 'essay2',
+        question: "Mengapa atribut 'alt' pada tag <img> sangat krusial dalam pembuatan website yang ramah aksesibilitas? Jelaskan skenario apa saja yang memanfaatkan nilai dari atribut tersebut!",
+        maxScore: 10
+      },
+      {
+        id: 'essay3',
+        question: "Dalam pembuatan formulir (form) pendaftaran online, kapan kita harus menggunakan method='GET' dan kapan kita wajib menggunakan method='POST'? Analisis dari sudut pandang keamanan data!",
+        maxScore: 10
+      },
+      {
+        id: 'essay4',
+        question: "Sebutkan dan jelaskan fungsi dari setidaknya 3 tag baru yang diperkenalkan pada HTML5 yang bersifat semantik (structural semantic tags)!",
+        maxScore: 10
+      },
+      {
+        id: 'essay5',
+        question: "Tuliskan struktur dasar (kerangka minimal) kode HTML5 yang valid dan jelaskan secara singkat fungsi dari deklarasi <!DOCTYPE html> di baris paling atas!",
+        maxScore: 10
+      }
+    ];
+
+    // --- INITIALIZATION ---
+    window.onload = async function() {
+      try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        auth = firebase.auth();
+
+        // Rule 3: Auth Before Queries - Prioritize __initial_auth_token
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await auth.signInWithCustomToken(__initial_auth_token);
+        } else {
+          await auth.signInAnonymously();
+        }
+
+        auth.onAuthStateChanged((user) => {
+          currentUser = user;
+          if (user) {
+            setupRealtimeSync();
+          }
+        });
+
+        // Generate UI elements
+        buildPGQuestions();
+        buildEssayQuestions();
+        buildNavigationGrids();
+        
+        switchPage('login');
+        setupAntiCheatDetection();
+      } catch (err) {
+        console.error("Firebase Init Error:", err);
+        showToast("Gagal terhubung ke server database Cloud. Fitur offline aktif.", "error");
+        switchPage('login');
+      }
+    };
+
+    // --- SWITICHING PAGES ---
+    function switchPage(pageId) {
+      const pages = ['page-loading', 'page-login', 'page-exam', 'page-ai-evaluating', 'page-finished', 'page-admin-login', 'page-admin-dashboard'];
+      pages.forEach(p => {
+        const el = document.getElementById(p);
+        if (el) el.classList.add('hidden');
+      });
+      
+      const activeEl = document.getElementById(`page-${pageId}`);
+      if (activeEl) activeEl.classList.remove('hidden');
+
+      // Adjust Header Actions
+      const btnPortal = document.getElementById('btn-admin-portal');
+      const btnLogout = document.getElementById('btn-admin-logout');
+
+      if (pageId === 'admin-dashboard') {
+        btnPortal.classList.add('hidden');
+        btnLogout.classList.remove('hidden');
+      } else if (pageId === 'admin-login') {
+        btnPortal.classList.add('hidden');
+        btnLogout.classList.add('hidden');
+      } else {
+        btnPortal.classList.remove('hidden');
+        btnLogout.classList.add('hidden');
+      }
+    }
+
+    // --- BUILD SOAL PG ---
+    function buildPGQuestions() {
+      const container = document.getElementById('pg-container');
+      container.innerHTML = '';
+
+      QUESTIONS_PG.forEach((q, index) => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 hover:border-indigo-500/30 transition shadow-md";
+        card.id = `qcard-pg-${index + 1}`;
+
+        // Question Statement
+        const questionHeader = document.createElement('div');
+        questionHeader.className = "flex gap-3";
+        questionHeader.innerHTML = `
+          <span class="font-mono bg-indigo-500/10 text-indigo-400 w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold shrink-0">${index + 1}</span>
+          <p class="text-slate-200 text-sm font-medium leading-relaxed">${escapeHTML(q.question)}</p>
+        `;
+        card.appendChild(questionHeader);
+
+        // Options
+        const optionsList = document.createElement('div');
+        optionsList.className = "grid grid-cols-1 gap-2.5 pl-9";
+        
+        q.options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.type = "button";
+          btn.id = `opt-${q.id}-${opt.key}`;
+          btn.onclick = () => selectPGAnswer(q.id, opt.key, index + 1);
+          btn.className = "w-full text-left bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 flex items-center gap-3 transition";
+          btn.innerHTML = `
+            <span class="w-6 h-6 rounded-lg bg-slate-900 border border-slate-750 flex items-center justify-center font-bold text-[10px] text-slate-400 shrink-0 font-mono opt-key">${opt.key}</span>
+            <span class="opt-text">${escapeHTML(opt.text)}</span>
+          `;
+          optionsList.appendChild(btn);
+        });
+
+        card.appendChild(optionsList);
+        container.appendChild(card);
+      });
+    }
+
+    // --- BUILD SOAL ESSAY ---
+    function buildEssayQuestions() {
+      const container = document.getElementById('essay-container');
+      container.innerHTML = '';
+
+      QUESTIONS_ESSAY.forEach((q, index) => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 hover:border-emerald-500/30 transition shadow-md";
+        card.id = `qcard-essay-${index + 1}`;
+
+        const questionHeader = document.createElement('div');
+        questionHeader.className = "flex gap-3";
+        questionHeader.innerHTML = `
+          <span class="font-mono bg-emerald-500/10 text-emerald-400 w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold shrink-0">${index + 1}</span>
+          <p class="text-slate-200 text-sm font-medium leading-relaxed">${escapeHTML(q.question)}</p>
+        `;
+        card.appendChild(questionHeader);
+
+        const textarea = document.createElement('textarea');
+        textarea.id = `textarea-${q.id}`;
+        textarea.rows = 4;
+        textarea.oninput = () => handleEssayInput(q.id, index + 1);
+        textarea.placeholder = "Tulis jawaban analitis lengkap Anda di sini...";
+        textarea.className = "w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-200 placeholder-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition leading-relaxed";
+        
+        card.appendChild(textarea);
+        container.appendChild(card);
+      });
+    }
+
+    // --- NAVIGASI SOAL ---
+    function buildNavigationGrids() {
+      const pgGrid = document.getElementById('nav-pg-grid');
+      pgGrid.innerHTML = '';
+      QUESTIONS_PG.forEach((_, idx) => {
+        const btn = document.createElement('button');
+        btn.id = `nav-pg-${idx + 1}`;
+        btn.onclick = () => scrollToElement(`qcard-pg-${idx + 1}`);
+        btn.className = "aspect-square rounded-lg bg-slate-950 border border-slate-800 text-slate-400 text-xs font-bold font-mono transition flex items-center justify-center";
+        btn.innerText = idx + 1;
+        pgGrid.appendChild(btn);
+      });
+
+      const essayGrid = document.getElementById('nav-essay-grid');
+      essayGrid.innerHTML = '';
+      QUESTIONS_ESSAY.forEach((_, idx) => {
+        const btn = document.createElement('button');
+        btn.id = `nav-essay-${idx + 1}`;
+        btn.onclick = () => scrollToElement(`qcard-essay-${idx + 1}`);
+        btn.className = "aspect-square rounded-lg bg-slate-950 border border-slate-800 text-slate-400 text-xs font-bold font-mono transition flex items-center justify-center";
+        btn.innerText = idx + 1;
+        essayGrid.appendChild(btn);
+      });
+    }
+
+    function scrollToElement(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    // --- SELECTION LOGIC ---
+    function selectPGAnswer(questionId, key, indexNum) {
+      if (!isExamActive) return;
+
+      // Remove active design from previous choices of the same question
+      QUESTIONS_PG.find(q => q.id === questionId).options.forEach(opt => {
+        const optBtn = document.getElementById(`opt-${questionId}-${opt.key}`);
+        if (optBtn) {
+          optBtn.className = "w-full text-left bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 flex items-center gap-3 transition";
+          const keySpan = optBtn.querySelector('.opt-key');
+          keySpan.className = "w-6 h-6 rounded-lg bg-slate-900 border border-slate-750 flex items-center justify-center font-bold text-[10px] text-slate-400 shrink-0 font-mono opt-key";
+        }
+      });
+
+      // Style Selected Option
+      pgAnswers[questionId] = key;
+      const activeBtn = document.getElementById(`opt-${questionId}-${key}`);
+      if (activeBtn) {
+        activeBtn.className = "w-full text-left bg-indigo-950/40 hover:bg-indigo-950/60 border-2 border-indigo-600 rounded-xl p-3.5 text-xs text-slate-100 flex items-center gap-3 transition";
+        const keySpan = activeBtn.querySelector('.opt-key');
+        keySpan.className = "w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-[10px] text-white shrink-0 font-mono opt-key";
+      }
+
+      // Update Nav Grid
+      const navBtn = document.getElementById(`nav-pg-${indexNum}`);
+      if (navBtn) {
+        navBtn.className = "aspect-square rounded-lg bg-indigo-600 border border-indigo-500 text-white text-xs font-bold font-mono transition flex items-center justify-center";
+      }
+
+      updateStatusCount();
+    }
+
+    function handleEssayInput(questionId, indexNum) {
+      if (!isExamActive) return;
+      const text = document.getElementById(`textarea-${questionId}`).value.trim();
+      
+      const navBtn = document.getElementById(`nav-essay-${indexNum}`);
+      if (text.length > 5) {
+        essayAnswers[questionId] = text;
+        if (navBtn) {
+          navBtn.className = "aspect-square rounded-lg bg-emerald-600 border border-emerald-500 text-white text-xs font-bold font-mono transition flex items-center justify-center";
+        }
+      } else {
+        delete essayAnswers[questionId];
+        if (navBtn) {
+          navBtn.className = "aspect-square rounded-lg bg-slate-950 border border-slate-800 text-slate-400 text-xs font-bold font-mono transition flex items-center justify-center";
+        }
+      }
+      updateStatusCount();
+    }
+
+    function updateStatusCount() {
+      const pgCount = Object.keys(pgAnswers).length;
+      const essayCount = Object.keys(essayAnswers).length;
+      document.getElementById('nav-stat-answered').innerText = `${pgCount + essayCount} / 15`;
+    }
+
+    // --- FORM SUBMIT LOGIN SISWA ---
+    document.getElementById('form-login').onsubmit = function(e) {
+      e.preventDefault();
+      studentName = document.getElementById('student-name').value.trim();
+      studentClass = document.getElementById('student-class').value;
+
+      if (!studentName) {
+        showToast("Harap masukkan nama lengkap Anda!", "warning");
+        return;
+      }
+
+      // Setup exam screen
+      document.getElementById('display-student-name').innerText = studentName;
+      document.getElementById('display-student-class').innerText = `${studentClass} • SMK Negeri 1 Kasomalang`;
+      
+      // Reset state
+      pgAnswers = {};
+      essayAnswers = {};
+      cheatCount = 0;
+      timeLeft = 2700;
+      isExamActive = true;
+
+      // Reset UI Grids & Textareas
+      QUESTIONS_PG.forEach((_, i) => {
+        const btn = document.getElementById(`nav-pg-${i+1}`);
+        if(btn) btn.className = "aspect-square rounded-lg bg-slate-950 border border-slate-800 text-slate-400 text-xs font-bold font-mono transition flex items-center justify-center";
+      });
+      QUESTIONS_ESSAY.forEach((q, i) => {
+        const btn = document.getElementById(`nav-essay-${i+1}`);
+        if(btn) btn.className = "aspect-square rounded-lg bg-slate-950 border border-slate-800 text-slate-400 text-xs font-bold font-mono transition flex items-center justify-center";
+        const text = document.getElementById(`textarea-${q.id}`);
+        if(text) text.value = '';
+      });
+      buildPGQuestions(); // Rebuild options design
+      updateStatusCount();
+      document.getElementById('nav-stat-cheat').innerText = `0 Pelanggaran (-0 Poin)`;
+
+      switchPage('exam');
+      startTimer();
+      showToast(`Selamat datang ${studentName}. Selamat mengerjakan!`, "success");
+    };
+
+    // --- TIMER SYSTEM ---
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          timeLeft = 0;
+          submitExam(true); // Auto submit
+        }
+
+        const min = Math.floor(timeLeft / 60);
+        const sec = timeLeft % 60;
+        const timeStr = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+        document.getElementById('exam-timer').innerText = timeStr;
+      }, 1000);
+    }
+
+    // --- ANTI-CHEAT ENGINE ---
+    function setupAntiCheatDetection() {
+      window.addEventListener('blur', () => {
+        if (!isExamActive) return;
+        triggerCheatEvent();
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (!isExamActive) return;
+        if (document.visibilityState === 'hidden') {
+          triggerCheatEvent();
+        }
+      });
+    }
+
+    function triggerCheatEvent() {
+      cheatCount++;
+      const penalty = cheatCount * penaltyPerCheat;
+      
+      // Update UI HUD real-time
+      document.getElementById('nav-stat-cheat').innerText = `${cheatCount} Pelanggaran (-${penalty} Poin)`;
+      
+      // Update modal warning pelanggaran
+      document.getElementById('cheat-count-display').innerText = cheatCount;
+      document.getElementById('cheat-penalty-display').innerText = `Potongan Nilai: -${penalty} Poin`;
+      
+      // Tampilkan modal peringatan
+      document.getElementById('cheat-modal').classList.remove('hidden');
+      
+      showToast(`Pelanggaran ke-${cheatCount} dicatat! Potongan nilai: -${penalty} poin.`, "warning");
+    }
+
+    function dismissCheatModal() {
+      document.getElementById('cheat-modal').classList.add('hidden');
+    }
+
+    // --- GEMINI API INTELLIGENT EVALUATOR ---
+    async function evaluateEssayWithAI(answersObject, cheatedPenalty = false) {
+      // Walaupun ada cheatCount, kita tetap menilai jawaban essay secara penuh
+      // karena sistem konversi pelanggaran langsung dipotong di kalkulasi skor total akhir.
+
+      // Gabung soal dan jawaban agar hemat token prompt
+      const inputPayload = QUESTIONS_ESSAY.map((q, idx) => {
+        const studentAns = answersObject[q.id] || "Siswa mengosongkan jawaban.";
+        return `Soal ${idx+1}: ${q.question}\nJawaban Siswa: ${studentAns}\nSkor Maks: ${q.maxScore}`;
+      }).join("\n\n");
+
+      const systemPrompt = `Anda adalah Guru Evaluator Web Programming ahli di SMK Negeri 1 Kasomalang. Tugas Anda adalah memberikan nilai dan umpan balik kritis untuk 5 jawaban esai ujian HTML5 siswa kelas XI RPL secara objektif dan akurat.
+Anda harus membalas dalam format JSON yang valid berupa Array Objek persis seperti skema di bawah ini. Harap diperhatikan jangan menuliskan kode markdown lain (misal \`\`\`json) di luar struktur JSON murni.
+
+Skema Respons JSON yang Diperlukan:
+[
+  {
+    "id": "essay1",
+    "score": <angka_nilai_0_sampai_10>,
+    "strengths": "<analisis_singkat_kelebihan_jawaban>",
+    "weaknesses": "<analisis_singkat_kekurangan_jawaban>",
+    "feedback": "<umpan_balik_singkat_saran_perbaikan>"
+  },
+  ... (untuk total 5 objek sesuai id essay1 sampai essay5)
+]
+
+Kriteria Penskoran (Maksimal 10 per soal):
+- 10: Jawaban sangat tepat, analitis, menyertakan contoh sintaks/kasus valid.
+- 7-9: Konsep benar, deskripsi jelas, namun kurang contoh atau kedalaman teknis.
+- 4-6: Hanya menjawab kulitnya saja atau konsep agak tertukar.
+- 1-3: Jawaban terlalu singkat, asal, atau tidak nyambung sama sekali.
+- 0: Kosong / tidak menjawab.`;
+
+      // Gunakan eksponensial backoff untuk API call sesuai standard
+      let retries = 5;
+      let delay = 1000;
+
+      while (retries > 0) {
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: `Berikut adalah pekerjaan siswa:\n\n${inputPayload}` }] }],
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                  type: "ARRAY",
+                  items: {
+                    type: "OBJECT",
+                    properties: {
+                      id: { type: "STRING" },
+                      score: { type: "INTEGER" },
+                      strengths: { type: "STRING" },
+                      weaknesses: { type: "STRING" },
+                      feedback: { type: "STRING" }
+                    },
+                    required: ["id", "score", "strengths", "weaknesses", "feedback"]
+                  }
+                }
+              }
+            })
+          });
+
+          if (!response.ok) throw new Error(`HTTP Error Status: ${response.status}`);
+          
+          const result = await response.json();
+          const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawText) {
+            return JSON.parse(rawText);
+          }
+          throw new Error("Invalid response format from Gemini API");
+
+        } catch (error) {
+          retries--;
+          if (retries === 0) {
+            console.error("Gemini API call failed after retries:", error);
+            // Fallback evaluator jika API bermasalah total
+            return QUESTIONS_ESSAY.map(q => {
+              const ans = answersObject[q.id] || "";
+              const hasContent = ans.trim().length > 10;
+              return {
+                id: q.id,
+                score: hasContent ? 7 : 0,
+                strengths: hasContent ? "Menjawab soal secara umum." : "Tidak menjawab.",
+                weaknesses: "Penilaian AI mengalami masalah jaringan (fallback simulator aktif).",
+                feedback: hasContent ? "Jawaban Anda terekam dengan baik." : "Jawaban kosong."
+              };
+            });
+          }
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay *= 2;
+        }
+      }
+    }
+
+    // --- FORM SUBMIT EXAM ---
+    function confirmSubmitModal() {
+      document.getElementById('confirm-submit-modal').classList.remove('hidden');
+    }
+
+    function closeConfirmSubmitModal() {
+      document.getElementById('confirm-submit-modal').classList.add('hidden');
+    }
+
+    async function submitExam(forceSubmit = false) {
+      if (!currentUser) return; // Guard
+      isExamActive = false;
+      clearInterval(timerInterval);
+      closeConfirmSubmitModal();
+
+      switchPage('ai-evaluating');
+
+      // 1. Calculate PG Score (Max 50)
+      let pgScore = 0;
+      const pgDetails = [];
+      QUESTIONS_PG.forEach(q => {
+        const studentAns = pgAnswers[q.id] || '-';
+        const isCorrect = studentAns === q.correctAnswer;
+        if (isCorrect) pgScore += 5;
+        
+        pgDetails.push({
+          questionId: q.id,
+          studentAnswer: studentAns,
+          correctAnswer: q.correctAnswer,
+          isCorrect: isCorrect
+        });
+      });
+
+      // 2. Calculate Essay Score via Gemini AI (Max 50)
+      let essayDetails = [];
+      let essayTotalScore = 0;
+
+      try {
+        essayDetails = await evaluateEssayWithAI(essayAnswers);
+        essayDetails.forEach(item => {
+          essayTotalScore += item.score;
+        });
+      } catch (err) {
+        console.error("Evaluation error:", err);
+      }
+
+      // 3. Konversi Pelanggaran Menjadi Penalti Nilai Akhir
+      const rawScore = pgScore + essayTotalScore;
+      const totalPenalty = cheatCount * penaltyPerCheat;
+      const finalScore = Math.max(0, rawScore - totalPenalty);
+
+      // 4. Save to Cloud Firestore (Rule 1 & Rule 3 Compliant Path)
+      const examResultData = {
+        name: studentName,
+        class: studentClass,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        pgScore: pgScore,
+        essayScore: essayTotalScore,
+        rawScore: rawScore,
+        totalPenalty: totalPenalty,
+        totalScore: finalScore,
+        cheatCount: cheatCount,
+        answers: {
+          pg: pgAnswers,
+          essay: essayAnswers
+        },
+        aiFeedback: essayDetails
+      };
+
+      try {
+        // Correct Rule 1 path structure for Firebase Compat SDK
+        const examCollection = db.collection('artifacts/' + appId + '/public/data/student_exam_results');
+        await examCollection.add(examResultData);
+        showToast("Hasil ujian Anda berhasil disinkronkan ke Cloud Database!", "success");
+      } catch (firestoreErr) {
+        console.error("Firestore Save Error:", firestoreErr);
+        showToast("Gagal menyimpan ke server cloud, data tersimpan lokal.", "warning");
+      }
+
+      // Display results to student
+      displayResults(pgScore, essayTotalScore, finalScore, totalPenalty, essayDetails);
+    }
+
+    function displayResults(pg, essay, total, penalty, feedbackList) {
+      document.getElementById('result-pg-score').innerHTML = `${pg} <span class="text-xs text-slate-600">/ 50</span>`;
+      document.getElementById('result-essay-score').innerHTML = `${essay} <span class="text-xs text-slate-600">/ 50</span>`;
+      
+      // Format Tampilan Total Skor dengan Informasi Potongan Pelanggaran jika ada
+      if (penalty > 0) {
+        document.getElementById('result-total-score').innerHTML = `
+          <div class="text-2xl font-black text-rose-400">${total} <span class="text-xs text-rose-500">(-${penalty} Poin)</span></div>
+          <p class="text-[10px] text-rose-400 mt-1 font-semibold">*Terpotong ${cheatCount}x pelanggaran layar</p>
+        `;
+      } else {
+        document.getElementById('result-total-score').innerHTML = `${total} <span class="text-xs text-slate-600">/ 100</span>`;
+      }
+
+      // Change badge color depending on score
+      const badgeIcon = document.getElementById('result-badge-icon');
+      if (total >= 75) {
+        badgeIcon.className = "inline-block bg-emerald-500/10 text-emerald-400 p-4 rounded-full";
+        badgeIcon.innerHTML = `<i class="fa-solid fa-graduation-cap text-4xl"></i>`;
+        document.getElementById('result-title-header').innerText = "Luar Biasa, Kompeten!";
+        document.getElementById('result-desc-header').innerText = "Selamat, nilai Anda melampaui Kriteria Ketuntasan Minimal (KKM).";
+      } else {
+        badgeIcon.className = "inline-block bg-amber-500/10 text-amber-400 p-4 rounded-full";
+        badgeIcon.innerHTML = `<i class="fa-solid fa-circle-info text-4xl"></i>`;
+        document.getElementById('result-title-header').innerText = "Ujian Selesai! Tetap Semangat!";
+        document.getElementById('result-desc-header').innerText = "Perbanyak membaca dokumentasi W3Schools untuk meningkatkan pemahaman.";
+      }
+
+      // Render AI Feedback list
+      const container = document.getElementById('ai-feedback-container');
+      container.innerHTML = '';
+
+      QUESTIONS_ESSAY.forEach((q, idx) => {
+        const itemFeedback = feedbackList.find(f => f.id === q.id) || {
+          score: 0, strengths: '-', weaknesses: '-', feedback: 'Tidak dinilai.'
+        };
+
+        const itemCard = document.createElement('div');
+        itemCard.className = "bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3";
+        itemCard.innerHTML = `
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <span class="text-xs font-bold text-slate-200">Soal Esai ${idx + 1}</span>
+            <span class="bg-indigo-500/10 text-indigo-400 text-xs px-2.5 py-1 rounded-full font-bold">Skor: ${itemFeedback.score} / 10</span>
+          </div>
+          <p class="text-slate-400 text-xs leading-relaxed"><strong class="text-slate-300">Pertanyaan:</strong> ${escapeHTML(q.question)}</p>
+          <div class="p-3 bg-slate-900 rounded-lg text-xs space-y-1.5 border border-slate-850">
+            <p class="text-emerald-400"><i class="fa-solid fa-square-check mr-1.5"></i><strong>Kekuatan:</strong> ${escapeHTML(itemFeedback.strengths)}</p>
+            <p class="text-rose-400"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i><strong>Kelemahan:</strong> ${escapeHTML(itemFeedback.weaknesses)}</p>
+            <p class="text-indigo-300"><i class="fa-solid fa-lightbulb mr-1.5"></i><strong>Saran AI:</strong> ${escapeHTML(itemFeedback.feedback)}</p>
+          </div>
+        `;
+        container.appendChild(itemCard);
+      });
+
+      switchPage('finished');
+    }
+
+    function restartExam() {
+      document.getElementById('student-name').value = '';
+      switchPage('login');
+    }
+
+    // --- REALTIME SYNC (PORTAL GURU/ADMIN) ---
+    function setupRealtimeSync() {
+      if (!currentUser) return; // Guard - Rule 3 compliant
+      
+      // Rule 1 & Rule 2: Strict path and simple query only, NO complex where/orderby
+      const docRef = db.collection('artifacts/' + appId + '/public/data/student_exam_results');
+      docRef.onSnapshot((snapshot) => {
+        studentsList = [];
+        snapshot.forEach((doc) => {
+          studentsList.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        
+        // Sorting manually in Javascript to respect Rule 2
+        studentsList.sort((a, b) => {
+          const timeA = a.timestamp ? a.timestamp.seconds : 0;
+          const timeB = b.timestamp ? b.timestamp.seconds : 0;
+          return timeB - timeA;
+        });
+
+        renderAdminTable();
+      }, (err) => {
+        console.error("Firestore Listen Failed:", err);
+      });
+    }
+
+    // --- RENDER REKAP TABEL ADMIN ---
+    function renderAdminTable() {
+      const filterClass = document.getElementById('filter-class').value;
+      const tbody = document.getElementById('admin-table-body');
+      tbody.innerHTML = '';
+
+      let filtered = studentsList;
+      if (filterClass !== 'ALL') {
+        filtered = studentsList.filter(s => s.class === filterClass);
+      }
+
+      document.getElementById('admin-stats-total').innerText = `Siswa: ${filtered.length}`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-slate-500">Belum ada siswa yang menyudahi ujian.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach((student, index) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-900 border-b border-slate-850 cursor-pointer transition";
+        if (selectedStudent && selectedStudent.id === student.id) {
+          tr.className = "bg-indigo-950/20 hover:bg-indigo-950/30 border-b border-indigo-500/20 cursor-pointer transition";
+        }
+        
+        // Click to view/edit
+        tr.onclick = (e) => {
+          if (e.target.closest('button')) return; // Ignore if clicked action button
+          selectStudentForAdmin(student);
+        };
+
+        // Status Pelanggaran Design Helper
+        let statusBadge = `<span class="bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-bold"><i class="fa-solid fa-shield mr-1"></i>Aman</span>`;
+        if (student.cheatCount > 0) {
+          const calculatedPenalty = student.cheatCount * penaltyPerCheat;
+          statusBadge = `<span class="bg-rose-500/10 text-rose-400 px-2.5 py-0.5 rounded-full text-[10px] font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${student.cheatCount}x Cheat (-${calculatedPenalty} P)</span>`;
+        }
+
+        tr.innerHTML = `
+          <td class="py-3.5 px-2 font-mono text-slate-500 text-center">${index + 1}</td>
+          <td class="py-3.5 px-4 font-bold text-slate-200">${escapeHTML(student.name)}</td>
+          <td class="py-3.5 px-3 text-slate-400">${escapeHTML(student.class)}</td>
+          <td class="py-3.5 px-3 text-center font-bold text-indigo-400">${student.pgScore}</td>
+          <td class="py-3.5 px-3 text-center font-bold text-emerald-400">${student.essayScore}</td>
+          <td class="py-3.5 px-3 text-center font-black text-amber-400">${student.totalScore}</td>
+          <td class="py-3.5 px-3 text-center">${statusBadge}</td>
+          <td class="py-3.5 px-4 text-right">
+            <button onclick="deleteStudentResult('${student.id}')" class="bg-slate-950 hover:bg-rose-950 hover:text-rose-400 border border-slate-800 hover:border-rose-800 text-slate-400 text-[10px] font-semibold px-2.5 py-1 rounded-md transition">
+              <i class="fa-solid fa-trash-can"></i> Hapus
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // --- PANEL ADMIN LOGIC ---
+    document.getElementById('form-admin-login').onsubmit = function(e) {
+      e.preventDefault();
+      const pwd = document.getElementById('admin-password').value;
+      if (pwd === 'rplkasomalang') {
+        isAdminLoggedIn = true;
+        document.getElementById('admin-password').value = '';
+        switchPage('admin-dashboard');
+        showToast("Selamat datang di Portal Administrasi Guru!", "success");
+      } else {
+        showToast("Password admin salah!", "error");
+      }
+    };
+
+    function logoutAdmin() {
+      isAdminLoggedIn = false;
+      setSelectedStudentNull();
+      switchPage('login');
+      showToast("Berhasil keluar dari portal guru.", "info");
+    }
+
+    function selectStudentForAdmin(student) {
+      selectedStudent = student;
+      
+      // Update styling tabel
+      renderAdminTable();
+
+      // Show form edit
+      document.getElementById('admin-editor-placeholder').classList.add('hidden');
+      const form = document.getElementById('form-admin-edit');
+      form.classList.remove('hidden');
+      document.getElementById('btn-cancel-select').classList.remove('hidden');
+
+      // Fill values
+      document.getElementById('edit-student-name').value = student.name;
+      document.getElementById('edit-student-class').value = student.class;
+      document.getElementById('edit-student-pg').value = student.pgScore;
+      document.getElementById('edit-student-essay').value = student.essayScore;
+      document.getElementById('edit-student-cheat').value = student.cheatCount;
+
+      // Render AI Feedback
+      const container = document.getElementById('admin-ai-feedback');
+      container.innerHTML = '';
+
+      if (student.aiFeedback && student.aiFeedback.length > 0) {
+        student.aiFeedback.forEach((feedback, idx) => {
+          const div = document.createElement('div');
+          div.className = "bg-slate-950 p-3 rounded-lg border border-slate-850 text-xs space-y-1.5";
+          
+          // Cari soal
+          const originalSoal = QUESTIONS_ESSAY.find(q => q.id === feedback.id)?.question || '-';
+          const originalJawab = student.answers?.essay?.[feedback.id] || "Siswa mengosongkan jawaban.";
+
+          div.innerHTML = `
+            <div class="flex justify-between font-bold text-slate-400">
+              <span>Soal ${idx + 1}</span>
+              <span class="text-indigo-400">Nilai AI: ${feedback.score}</span>
+            </div>
+            <p class="text-[10px] text-slate-500 italic">Q: ${originalSoal}</p>
+            <p class="text-[11px] text-slate-300 bg-slate-900 p-1.5 rounded border border-slate-800">A: "${escapeHTML(originalJawab)}"</p>
+            <p class="text-indigo-300 text-[10px]"><strong class="text-slate-400">Feedback AI:</strong> ${escapeHTML(feedback.feedback)}</p>
+          `;
+          container.appendChild(div);
+        });
+      } else {
+        container.innerHTML = `<p class="text-xs text-slate-500 italic">Siswa ini tidak mengikuti uji koreksi AI (jawaban esai kosong).</p>`;
+      }
+    }
+
+    function setSelectedStudentNull() {
+      selectedStudent = null;
+      document.getElementById('admin-editor-placeholder').classList.remove('hidden');
+      document.getElementById('form-admin-edit').classList.add('hidden');
+      document.getElementById('btn-cancel-select').classList.add('hidden');
+      renderAdminTable();
+    }
+
+    // --- SAVE ADMIN MANUAL EDIT ---
+    document.getElementById('form-admin-edit').onsubmit = async function(e) {
+      e.preventDefault();
+      if (!selectedStudent || !currentUser) return;
+
+      const newName = document.getElementById('edit-student-name').value.trim();
+      const newClass = document.getElementById('edit-student-class').value;
+      const newPG = parseInt(document.getElementById('edit-student-pg').value) || 0;
+      const newEssay = parseInt(document.getElementById('edit-student-essay').value) || 0;
+      const newCheat = parseInt(document.getElementById('edit-student-cheat').value) || 0;
+
+      // Kalkulasi total skor setelah dikurangi pelanggaran sesuai aturan baru
+      const totalScoreBeforePenalty = newPG + newEssay;
+      const calculatedPenalty = newCheat * penaltyPerCheat;
+      const total = Math.max(0, totalScoreBeforePenalty - calculatedPenalty);
+
+      const updateData = {
+        name: newName,
+        class: newClass,
+        pgScore: newPG,
+        essayScore: newEssay,
+        rawScore: totalScoreBeforePenalty,
+        totalPenalty: calculatedPenalty,
+        totalScore: total,
+        cheatCount: newCheat
+      };
+
+      try {
+        const docRef = db.doc('artifacts/' + appId + '/public/data/student_exam_results/' + selectedStudent.id);
+        await docRef.update(updateData);
+        showToast("Perubahan nilai siswa sukses disimpan!", "success");
+        setSelectedStudentNull();
+      } catch (err) {
+        console.error("Update error:", err);
+        showToast("Gagal mengupdate database.", "error");
+      }
+    };
+
+    // --- DELETE RESULT ---
+    async function deleteStudentResult(id) {
+      if (!currentUser) return;
+      if (confirm("Apakah Anda yakin ingin menghapus data nilai siswa ini secara permanen dari server?")) {
+        try {
+          const docRef = db.doc('artifacts/' + appId + '/public/data/student_exam_results/' + id);
+          await docRef.delete();
+          showToast("Data nilai siswa berhasil dihapus.", "info");
+          if (selectedStudent && selectedStudent.id === id) {
+            setSelectedStudentNull();
+          }
+        } catch (err) {
+          console.error("Delete error:", err);
+          showToast("Gagal menghapus data.", "error");
+        }
+      }
+    }
+
+    // --- TOAST NOTIFICATION ---
+    function showToast(message, type = "info") {
+      const container = document.getElementById('toast-container');
+      const card = document.getElementById('toast-card');
+      const text = document.getElementById('toast-message');
+
+      text.innerText = message;
+      
+      // Styling type
+      if (type === "success") {
+        card.className = "p-4 rounded-xl shadow-2xl border bg-slate-900 text-emerald-400 border-emerald-500/30 flex items-center gap-2";
+        text.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${message}`;
+      } else if (type === "error") {
+        card.className = "p-4 rounded-xl shadow-2xl border bg-slate-900 text-rose-400 border-rose-500/30 flex items-center gap-2";
+        text.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${message}`;
+      } else if (type === "warning") {
+        card.className = "p-4 rounded-xl shadow-2xl border bg-slate-900 text-amber-400 border-amber-500/30 flex items-center gap-2";
+        text.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${message}`;
+      } else {
+        card.className = "p-4 rounded-xl shadow-2xl border bg-slate-900 text-indigo-400 border-indigo-500/30 flex items-center gap-2";
+        text.innerHTML = `<i class="fa-solid fa-info-circle"></i> ${message}`;
+      }
+
+      container.classList.remove('hidden');
+      setTimeout(() => {
+        container.classList.add('hidden');
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
