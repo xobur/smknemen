@@ -3,757 +3,499 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CBT SMKN Kasomalang - Firebase Realtime Online v3.5</title>
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <style>
-    @keyframes blink-red {
-      0%, 100% { background-color: rgba(127, 29, 29, 0.4); }
-      50% { background-color: rgba(220, 38, 38, 0.4); }
-    }
-    .animate-strobo {
-      animation: blink-red 0.5s infinite;
-    }
-  </style>
+  <title>CBT SMKN KASOMALANG - Full Cloud Edition</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
-<body class="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col relative overflow-x-hidden">
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between">
 
-  <div id="jumpscareScreen" class="fixed inset-0 bg-black z-[9999] hidden flex-col items-center justify-center p-4 select-none">
-    <div class="absolute inset-0 animate-strobo mix-blend-color-burn pointer-events-none"></div>
-    <div class="animate-bounce text-red-600 mb-6 scale-125 sm:scale-150">
-      <svg viewBox="0 0 100 100" class="h-44 w-44 filter drop-shadow-[0_0_20px_rgba(239,68,68,0.8)]">
-        <path d="M50 15 L35 40 H65 Z" fill="#991b1b" />
-        <circle cx="42" cy="35" r="5" fill="#f87171" />
-        <circle cx="58" cy="35" r="5" fill="#f87171" />
-        <path d="M20 45 Q 35 48 50 45 Q 65 48 80 45" stroke="#ef4444" strokeWidth="4" fill="none" />
-        <path d="M15 60 Q 35 58 50 60 Q 65 58 85 60" stroke="#ef4444" strokeWidth="4" fill="none" />
-        <path d="M20 75 Q 35 68 50 75 Q 65 68 80 75" stroke="#ef4444" strokeWidth="4" fill="none" />
-        <ellipse cx="50" cy="55" rx="22" ry="25" fill="#7f1d1d" stroke="#ef4444" strokeWidth="3" />
-        <circle cx="43" cy="50" r="4" fill="#ffffff" />
-        <circle cx="57" cy="50" r="4" fill="#ffffff" />
-        <path d="M38 65 Q 50 78 62 65 L 56 65 L 50 70 L 44 65 Z" fill="#ffffff" />
-      </svg>
-    </div>
-    <div class="text-center space-y-4 max-w-xl z-10 px-4">
-      <h1 class="text-4xl sm:text-5xl font-black text-red-500 tracking-wider animate-pulse drop-shadow-md">
-        MENDETEKSI KECURANGAN!
-      </h1>
-      <p class="text-xl sm:text-2xl font-bold text-red-400">
-        Awas <span id="jumpscareNama">Siswa</span> ketahuan, jangan macam-macam, saya tandain ya!
-      </p>
-      <div class="bg-red-950/60 border border-red-500/50 p-3 rounded-xl text-xs sm:text-sm text-red-300 leading-relaxed font-mono">
-        Sistem SMKN Kasomalang mencatat aktivitas meninggalkan layar ujian. "Hantu Bug Syntax" ini akan otomatis mengurangi poin orisinalitas pengerjaan Anda jika terulang kembali!
-      </div>
-      <button onclick="closeJumpscare()" class="mt-6 bg-red-600 hover:bg-red-700 text-white font-mono px-6 py-2.5 rounded-xl transition duration-200 cursor-pointer shadow-lg">
-        Saya Mengaku Salah & Kembali Ujian
-      </button>
+  <div id="jumpscareOverlay" class="fixed inset-0 bg-black z-[9999] hidden flex flex-col items-center justify-center p-4">
+    <div class="text-center space-y-4 max-w-xl">
+      <h1 class="text-4xl font-black text-red-500 tracking-wider animate-pulse">DETEKSI KECURANGAN!</h1>
+      <p id="jumpscareText" class="text-xl font-bold text-red-400">Dilarang meninggalkan tab aktif ujian!</p>
+      <button onclick="closeJumpscare()" class="mt-4 px-6 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 text-sm transition">Saya Mengerti, Kembali ke Ujian</button>
     </div>
   </div>
 
-  <header class="bg-slate-950/80 border-b border-slate-800 p-4 sticky top-0 z-40 backdrop-blur-md flex justify-between items-center">
-    <div class="flex items-center space-x-3">
-      <div id="logoContainer"></div>
-      <div>
-        <h1 class="font-bold text-sm sm:text-base text-white tracking-wide">CBT SMKN KASOMALANG</h1>
-        <p class="text-[11px] text-slate-400 font-mono">RPL Pemrograman Web &bull; HOTS Cloud Database</p>
+  <header class="bg-slate-950 border-b border-slate-800 p-4 sticky top-0 z-40 backdrop-blur-md bg-opacity-90">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="bg-indigo-600 px-3 py-1.5 rounded-lg font-mono font-bold text-white text-base">CBT</div>
+        <div>
+          <h1 class="text-sm font-bold text-slate-200">SMKN KASOMALANG</h1>
+          <p class="text-[11px] text-indigo-400 font-mono">● Live Cloud Database Active</p>
+        </div>
       </div>
-    </div>
-    <div class="flex items-center space-x-3">
-      <button onclick="toggleMute()" id="muteBtn" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-xs sm:text-sm">
-        🔊 Bersuara
-      </button>
-      <div id="headerUserPanel" class="hidden flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
-        <span id="headerUserText" class="font-medium text-indigo-300 font-mono"></span>
-        <button onclick="handleLogout()" class="text-red-400 hover:text-red-300 ml-2 font-bold font-mono">Keluar</button>
+      <div id="headerUserInfo" class="text-xs font-mono hidden flex items-center space-x-2">
+        <span id="userBadge" class="px-2 py-0.5 rounded text-[10px]">Role</span>
+        <span id="currentUserName" class="text-slate-300 font-bold">Nama</span>
       </div>
     </div>
   </header>
 
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 z-10 relative">
+  <main class="max-w-7xl w-full mx-auto p-4 flex-grow">
 
-    <div id="viewRoleSelection" class="max-w-md mx-auto my-12 space-y-6">
-      <div class="bg-slate-950/50 border border-slate-800 p-8 rounded-2xl shadow-xl text-center space-y-6">
-        <div class="flex justify-center" id="bigLogoContainer"></div>
-        <div class="space-y-1">
-          <h2 class="text-xl font-bold text-slate-100">Selamat Datang di Portal CBT Online</h2>
-          <p class="text-xs text-slate-400">Silahkan pilih otentikasi hak akses Anda</p>
-        </div>
-        <div class="grid grid-cols-2 gap-4 pt-2">
-          <button onclick="switchView('siswa-login')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-indigo-600/10 border border-indigo-500/20 hover:border-indigo-500 hover:bg-indigo-600/20 transition group cursor-pointer">
-            <span class="text-2xl group-hover:scale-110 transition">🎓</span>
-            <span class="mt-2 text-sm font-semibold text-indigo-300">Siswa / Peserta</span>
-          </button>
-          <button onclick="switchView('admin-auth')" class="flex flex-col items-center justify-center p-4 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-slate-500 hover:bg-slate-800 transition group cursor-pointer">
-            <span class="text-2xl group-hover:scale-110 transition">🛠️</span>
-            <span class="mt-2 text-sm font-semibold text-slate-300">Guru / Admin</span>
-          </button>
-        </div>
+    <div id="roleSelectionPage" class="max-w-md mx-auto my-16 bg-slate-950 p-8 rounded-2xl border border-slate-800 shadow-2xl space-y-6">
+      <div class="text-center space-y-1">
+        <h2 class="text-xl font-bold text-slate-100">Portal CBT Online v3.5</h2>
+        <p class="text-xs text-slate-400">Silakan pilih hak akses masuk Anda</p>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <button onclick="switchView('siswaLoginPage')" class="p-5 bg-slate-900 border border-slate-800 rounded-xl hover:border-indigo-500 hover:bg-indigo-500/5 transition text-center">
+          <div class="text-3xl mb-2">🎓</div>
+          <span class="text-xs font-bold block uppercase tracking-wider">Siswa</span>
+        </button>
+        <button onclick="switchView('adminLoginPage')" class="p-5 bg-slate-900 border border-slate-800 rounded-xl hover:border-emerald-500 hover:bg-emerald-500/5 transition text-center">
+          <div class="text-3xl mb-2">🛠️</div>
+          <span class="text-xs font-bold block uppercase tracking-wider">Guru / Admin</span>
+        </button>
       </div>
     </div>
 
-    <div id="viewAdminAuth" class="max-w-sm mx-auto my-16 hidden">
-      <div class="bg-slate-950/50 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
-        <h3 class="text-lg font-bold text-white flex items-center gap-2">🔑 Autentikasi Ruang Guru</h3>
-        <form onsubmit="handleAdminAuth(event)" class="space-y-4">
+    <div id="adminLoginPage" class="max-w-sm mx-auto my-16 bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-4 hidden">
+      <h3 class="text-base font-bold text-emerald-400 font-mono border-b border-slate-800 pb-2 uppercase">🔑 Ruang Guru</h3>
+      <form onsubmit="authAdmin(event)">
+        <div class="space-y-3">
           <div>
-            <label class="block text-xs font-mono text-slate-400 mb-1">KATA SANDI AKSES GURU:</label>
-            <input type="password" id="adminPassword" placeholder="••••••••" required class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500 font-mono">
+            <label class="block text-[10px] text-slate-400 mb-1 font-mono">SANDI AKSES:</label>
+            <input type="password" id="adminPassword" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-emerald-500 text-slate-100" placeholder="Masukkan password admin...">
           </div>
-          <div id="adminAuthError" class="text-xs text-red-400 font-mono hidden"></div>
-          <div class="flex justify-between gap-2 pt-2">
-            <button type="button" onclick="switchView('role-selection')" class="w-1/2 text-xs py-2 bg-slate-800 rounded-lg hover:bg-slate-700 font-mono transition">Kembali</button>
-            <button type="submit" class="w-1/2 text-xs py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 font-mono transition">Masuk Panel</button>
+          <div id="adminAuthError" class="text-[11px] text-red-400 font-mono hidden">❌ Kata sandi salah!</div>
+          <div class="flex space-x-2 pt-2 text-xs">
+            <button type="button" onclick="switchView('roleSelectionPage')" class="w-1/2 bg-slate-800 hover:bg-slate-700 font-bold py-2 rounded-lg transition">Kembali</button>
+            <button type="submit" class="w-1/2 bg-emerald-600 hover:bg-emerald-500 font-bold py-2 rounded-lg transition text-white">Masuk</button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
 
-    <div id="viewSiswaLogin" class="max-w-md mx-auto my-12 hidden">
-      <div class="bg-slate-950/50 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
-        <h3 class="text-lg font-bold text-white flex items-center gap-2">📝 Form Mulai Ujian Mandiri</h3>
-        <form onsubmit="handleSiswaLogin(event)" class="space-y-4">
+    <div id="siswaLoginPage" class="max-w-md mx-auto my-12 bg-slate-950 p-7 rounded-2xl border border-slate-800 shadow-2xl space-y-5 hidden">
+      <h3 class="text-base font-bold text-indigo-400 font-mono border-b border-slate-800 pb-2 uppercase">📝 Registrasi Peserta</h3>
+      <form onsubmit="loginSiswa(event)">
+        <div class="space-y-4">
           <div>
-            <label class="block text-xs font-mono text-slate-400 mb-1">NAMA LENGKAP SISWA:</label>
-            <input type="text" id="siswaNama" required placeholder="Contoh: Aditya Pratama" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+            <label class="block text-[10px] text-slate-400 mb-1 font-mono">NAMA LENGKAP SISWA:</label>
+            <input type="text" id="siswaNama" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-100" placeholder="Contoh: Aditya Pratama">
           </div>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-mono text-slate-400 mb-1">KELAS KOMPETENSI:</label>
-              <select id="siswaKelas" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+              <label class="block text-[10px] text-slate-400 mb-1 font-mono">KELAS KOMPETENSI:</label>
+              <select id="siswaKelas" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-100">
                 <option value="X RPL A">X RPL A</option>
                 <option value="X RPL B">X RPL B</option>
               </select>
             </div>
             <div>
-              <label class="block text-xs font-mono text-slate-400 mb-1">NOMOR ABSENSI:</label>
-              <input type="text" id="siswaAbsen" required placeholder="Contoh: 01" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500 font-mono">
+              <label class="block text-[10px] text-slate-400 mb-1 font-mono">NOMOR ABSENSI:</label>
+              <input type="number" id="siswaAbsen" required min="1" max="50" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-100" placeholder="01">
             </div>
           </div>
-          <div class="bg-amber-500/5 border border-amber-500/20 p-3 rounded-xl text-[11px] text-amber-300 leading-relaxed font-mono">
-            ⚠️ <strong>SISTEM INTEGRITAS CLOUD:</strong> Nilai pengerjaan Anda akan langsung tersimpan secara aman di server database Firebase Cloud SMKN Kasomalang begitu Anda mengklik selesai.
-          </div>
-          <div class="flex justify-between gap-2 pt-2">
-            <button type="button" onclick="switchView('role-selection')" class="w-1/3 text-xs py-2 bg-slate-800 rounded-lg hover:bg-slate-700 font-mono transition">Kembali</button>
-            <button type="submit" class="w-2/3 text-xs py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-500 font-mono transition shadow-lg shadow-indigo-600/20">Mulai Ujian Sekarang</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div id="viewExamActive" class="hidden space-y-6">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <div class="lg:col-span-2 space-y-6">
-          <div class="bg-slate-950/40 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
-            <div>
-              <h2 class="text-base font-bold text-slate-200">SOAL UJIAN UTAMA</h2>
-              <p class="text-xs text-slate-400">Kerjakan dengan teliti dan jujur</p>
-            </div>
-            <button onclick="startRefreshGame()" class="text-xs px-3 py-1.5 bg-cyan-600/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-600/20 rounded-lg font-mono flex items-center gap-1 transition">
-              🎮 Brain Refresher Mini-Game
-            </button>
-          </div>
-
-          <div id="miniGameBoard" class="hidden bg-slate-950/80 border-2 border-cyan-500/40 rounded-xl p-4 space-y-3 relative overflow-hidden">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-              <div class="text-xs font-mono text-cyan-400">🎮 MINI GAME: HTML BUG SMASHER</div>
-              <div class="text-xs font-bold font-mono text-amber-400">Skor: <span id="gameScoreText">0</span></div>
-            </div>
-            <div id="gameArea" class="h-64 bg-slate-900 border border-slate-800 rounded-lg relative overflow-hidden select-none"></div>
-            <div class="flex justify-end">
-              <button onclick="closeGame()" class="text-[11px] font-mono px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-400">Tutup Game</button>
-            </div>
-          </div>
-
-          <div class="space-y-4">
-            <h3 class="text-xs font-mono text-indigo-400 bg-indigo-500/5 px-2 py-1 rounded w-fit border border-indigo-500/10">BAGIAN I: PILIHAN GANDA (HOTS)</h3>
-            <div id="listSoalPG" class="space-y-4"></div>
-          </div>
-
-          <div class="space-y-4 pt-4">
-            <h3 class="text-xs font-mono text-indigo-400 bg-indigo-500/5 px-2 py-1 rounded w-fit border border-indigo-500/10">BAGIAN II: URAIAN / ESAI (HOTS)</h3>
-            <div id="listSoalEsai" class="space-y-4"></div>
-          </div>
-
-          <div class="bg-slate-950/40 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
-            <p class="text-xs text-slate-400 font-mono">Pastikan semua field telah diisi sebelum menekan tombol selesai.</p>
-            <button onclick="handleSelesaiUjian()" id="btnSubmitExam" class="bg-emerald-600 hover:bg-emerald-500 text-white font-mono px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/10 cursor-pointer transition">
-              Kirim & Selesai Ujian
-            </button>
+          <div class="flex space-x-2 pt-2 text-xs">
+            <button type="button" onclick="switchView('roleSelectionPage')" class="w-1/3 bg-slate-800 hover:bg-slate-700 font-bold py-2 rounded-lg transition">Kembali</button>
+            <button type="submit" class="w-2/3 bg-indigo-600 hover:bg-indigo-500 font-bold py-2 rounded-lg transition text-white">Mulai Ujian</button>
           </div>
         </div>
-
-        <div class="space-y-6">
-          <div class="bg-slate-950/50 border border-slate-800 p-4 rounded-xl sticky top-24 space-y-4">
-            <h3 class="text-sm font-bold text-slate-200 border-b border-slate-800 pb-2">⏱️ STATUS PESERTA</h3>
-            <div class="space-y-2 text-xs font-mono">
-              <div class="flex justify-between"><span class="text-slate-400">Nama:</span> <span id="sideNama" class="text-slate-200 font-bold"></span></div>
-              <div class="flex justify-between"><span class="text-slate-400">Kelas:</span> <span id="sideKelas" class="text-slate-300"></span></div>
-              <div class="flex justify-between"><span class="text-slate-400">No Absen:</span> <span id="sideAbsen" class="text-indigo-400"></span></div>
-              <div class="flex justify-between"><span class="text-slate-400">Mulai Jam:</span> <span id="sideMulai" class="text-slate-400"></span></div>
-              <div class="flex justify-between"><span class="text-slate-400">Cheat Terdeteksi:</span> <span id="sideCheat" class="text-red-400 font-bold">0x</span></div>
-              <div class="flex justify-between"><span class="text-slate-400">Bonus Game:</span> <span id="sideBonus" class="text-cyan-400">0</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      </form>
     </div>
 
-    <div id="viewSiswaResult" class="max-w-2xl mx-auto hidden space-y-6">
-      <div class="bg-slate-950/50 border border-slate-800 p-6 rounded-2xl shadow-xl text-center space-y-4">
-        <div class="h-16 w-16 mx-auto bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 text-3xl">✓</div>
+    <div id="examPage" class="space-y-6 hidden">
+      <div class="bg-indigo-950/30 border border-indigo-500/20 p-4 rounded-xl flex flex-wrap justify-between items-center gap-3">
         <div>
-          <h2 class="text-xl font-bold text-slate-100">Ujian Berhasil Dikirim!</h2>
-          <p class="text-xs text-slate-400">Lembar kerja Anda telah dikoreksi otomatis dan terunggah ke Firebase Cloud.</p>
+          <span class="text-[10px] text-indigo-400 font-mono tracking-wider block">INSTRUMEN EVALUASI</span>
+          <h2 class="text-sm font-bold text-white">Pemrograman Web HTML (10 PG & 5 Esai HOTS)</h2>
         </div>
-        <div class="grid grid-cols-3 gap-2 border-y border-slate-800 py-4 max-w-sm mx-auto">
-          <div class="text-center"><p class="text-[10px] font-mono text-slate-500">SKOR PG</p><p id="resSkorPG" class="text-xl font-black text-indigo-400 font-mono"></p></div>
-          <div class="text-center"><p class="text-[10px] font-mono text-slate-500">SKOR ESAI</p><p id="resSkorEsai" class="text-xl font-black text-purple-400 font-mono"></p></div>
-          <div class="text-center"><p class="text-[10px] font-mono text-slate-500">TOTAL AKHIR</p><p id="resSkorTotal" class="text-2xl font-black text-emerald-400 font-mono"></p></div>
+        <div class="flex items-center space-x-3">
+          <button onclick="openMiniGame()" class="bg-amber-600 hover:bg-amber-500 text-white font-mono font-bold text-xs px-3 py-1.5 rounded-lg transition">🎮 Brain Game</button>
+          <div class="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 font-mono text-xs text-emerald-400 font-bold animate-pulse">● Live Mengerjakan</div>
         </div>
-        <div class="text-xs text-slate-400 font-mono flex justify-center gap-4">
-          <span>Pelanggaran Layar: <strong id="resCheat" class="text-red-400">0</strong></span>
-          <span>Bonus Game: <strong id="resBonus" class="text-cyan-400">0</strong></span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div class="lg:col-span-2 space-y-6">
+          <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800">
+            <h3 class="text-xs font-bold text-indigo-400 font-mono mb-4 pb-2 border-b border-slate-800">BAGIAN I: PILIHAN GANDA</h3>
+            <div id="pgContainer" class="space-y-6"></div>
+          </div>
+          <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800">
+            <h3 class="text-xs font-bold text-violet-400 font-mono mb-4 pb-2 border-b border-slate-800">BAGIAN II: URAIAN / ESAI</h3>
+            <div id="essayContainer" class="space-y-6"></div>
+          </div>
+          <div class="text-right">
+            <button onclick="submitUjian()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition shadow-lg">Kirim Lembar Jawaban</button>
+          </div>
         </div>
-        <button onclick="handleSiswaLogout()" class="mt-4 px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-mono transition">
-          Selesai & Keluar Ke Halaman Utama
-        </button>
+
+        <div id="miniGameContainer" class="bg-slate-950 p-4 rounded-2xl border border-amber-500/20 hidden h-[400px] flex flex-col justify-between lg:sticky lg:top-24">
+          <div>
+            <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+              <h4 class="text-xs font-bold text-amber-400 font-mono">👾 BUG SMASHER GAME</h4>
+              <button onclick="closeMiniGame()" class="text-slate-500 hover:text-slate-300 text-xs">✕</button>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-1">Klik tag merah (rusak) untuk bonus poin ujian! Jangan klik tag hijau.</p>
+            <div class="flex justify-between items-center mt-2 font-mono text-xs bg-slate-900 p-2 rounded border border-slate-800">
+              <span>Skor Game: <b id="gameScoreVal" class="text-amber-400">0</b></span>
+              <button onclick="startGameLoop()" id="startBtnGame" class="bg-amber-600 hover:bg-amber-500 px-2 py-0.5 rounded text-[10px] text-white">Main</button>
+            </div>
+          </div>
+          <div id="gameArea" class="bg-slate-900 w-full flex-grow my-2 rounded-lg border border-slate-800 relative overflow-hidden"></div>
+        </div>
       </div>
     </div>
 
-    <div id="viewAdminDashboard" class="hidden space-y-6">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-        <div class="flex space-x-4">
-          <button onclick="switchAdminTab('dashboard')" id="tabBtnDashboard" class="text-sm font-bold border-b-2 border-indigo-500 pb-2 text-white font-mono">📊 Rekap Nilai Siswa (Live)</button>
-          <button onclick="switchAdminTab('soal')" id="tabBtnSoal" class="text-sm font-bold text-slate-400 pb-2 hover:text-slate-200 font-mono">📚 Bank Soal (HOTS)</button>
+    <div id="resultPage" class="max-w-md mx-auto space-y-6 hidden my-12">
+      <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 text-center space-y-4">
+        <div class="text-3xl text-emerald-400">✓</div>
+        <h2 class="text-base font-bold text-white">Jawaban Terkirim Ke Cloud!</h2>
+        <p class="text-xs text-slate-400">Lembar digital Anda berhasil disimpan secara aman di database Firebase.</p>
+        
+        <div class="grid grid-cols-3 gap-2 py-2 font-mono text-center">
+          <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-[9px] text-slate-500 block">SKOR PG</span>
+            <span id="resSkorPG" class="text-sm font-bold text-indigo-400">0</span>
+          </div>
+          <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-[9px] text-slate-500 block">SKOR ESAI</span>
+            <span id="resSkorEssay" class="text-sm font-bold text-violet-400">0</span>
+          </div>
+          <div class="bg-emerald-500/5 p-2.5 rounded-xl border border-emerald-500/20">
+            <span class="text-[9px] text-emerald-400 block">TOTAL AKHIR</span>
+            <span id="resSkorTotal" class="text-base font-black text-emerald-400">0</span>
+          </div>
         </div>
-        <button onclick="openAddSiswaModal()" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg font-mono transition flex items-center gap-1 shadow-md">
-          ✚ Tambah Rekap Manual (CRUD)
-        </button>
+        <div class="text-[10px] text-amber-400 font-mono" id="bonusGameLog">Bonus Game: +0 Poin</div>
+        <button onclick="logoutSiswa()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-xs font-mono rounded-lg transition">Selesai & Keluar</button>
+      </div>
+    </div>
+
+    <div id="adminDashboardPage" class="space-y-6 hidden">
+      <div class="flex justify-between items-center bg-slate-950 p-4 rounded-xl border border-slate-800">
+        <div>
+          <h2 class="text-sm font-bold text-emerald-400">Dashboard Live Rekap Guru</h2>
+          <p class="text-xs text-slate-400">Sinkronisasi data real-time cloud server</p>
+        </div>
+        <button onclick="logoutAdmin()" class="bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 text-xs px-3 py-1.5 rounded-lg font-mono">Keluar</button>
       </div>
 
-      <div id="adminTabDashboard" class="space-y-6">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <input type="text" id="adminSearchInput" oninput="renderAdminDashboard()" placeholder="🔎 Cari nama siswa..." class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 focus:outline-none">
-          <select id="adminFilterKelas" onchange="renderAdminDashboard()" class="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 focus:outline-none">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs">
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+          <p class="text-slate-400">TOTAL SISWA MASUK</p>
+          <p id="statTotalSiswa" class="text-xl font-bold text-slate-100 mt-1">0</p>
+        </div>
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+          <p class="text-slate-400">ENGINE DATABASE</p>
+          <p class="text-xl font-bold text-indigo-400 mt-1">Firebase Cloud Realtime</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+        <div class="p-3 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
+          <h3 class="text-xs font-bold font-mono">REKAP NILAI REAL-TIME CLOUD</h3>
+          <select id="adminFilterKelas" onchange="renderAdminTable()" class="bg-slate-950 border border-slate-800 text-[11px] rounded p-1 focus:outline-none cursor-pointer">
             <option value="Semua">Semua Kelas</option>
             <option value="X RPL A">X RPL A</option>
             <option value="X RPL B">X RPL B</option>
           </select>
-          <div class="text-xs font-mono bg-slate-950/40 border border-slate-800 rounded-lg p-2 flex items-center justify-end text-slate-400">
-            Total Firebase Cloud: <strong id="totalSiswaBadge" class="text-indigo-400 ml-1">0</strong>
-          </div>
         </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div class="lg:col-span-3 bg-slate-950/40 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-            <div class="p-3 bg-slate-950 border-b border-slate-800 text-xs font-mono font-bold text-slate-300">DAFTAR HADIR REAL-TIME GURU</div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs font-mono">
-                <thead class="bg-slate-900 text-slate-400 border-b border-slate-800">
-                  <tr>
-                    <th class="p-3">Absen</th>
-                    <th class="p-3">Siswa / Kelas</th>
-                    <th class="p-3 text-center">PG</th>
-                    <th class="p-3 text-center">Esai</th>
-                    <th class="p-3 text-center">Total</th>
-                    <th class="p-3 text-right">Aksi (CRUD)</th>
-                  </tr>
-                </thead>
-                <tbody id="tableSiswaBody" class="divide-y divide-slate-800/60"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="lg:col-span-2 space-y-4">
-            <div id="adminDetailPanelPlaceholder" class="bg-slate-950/20 border border-dashed border-slate-800 p-8 rounded-xl text-center text-xs text-slate-500 font-mono">
-              Silahkan klik tombol "Detail Analisis AI" pada salah satu siswa untuk melihat rincian koreksi.
-            </div>
-            <div id="adminDetailPanelReal" class="hidden bg-slate-950/40 border border-slate-800 p-4 rounded-xl space-y-4 shadow-xl">
-              <div class="flex justify-between items-start border-b border-slate-800 pb-2">
-                <div>
-                  <h4 id="detailNama" class="text-sm font-bold text-slate-200"></h4>
-                  <p id="detailMeta" class="text-[11px] text-slate-400 font-mono"></p>
-                </div>
-              </div>
-              <div id="detailEsaiCards" class="space-y-3 overflow-y-auto max-h-[450px] pr-1"></div>
-            </div>
-          </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900 text-slate-400 font-mono uppercase text-[10px] border-b border-slate-800">
+              <tr>
+                <th class="p-3 text-center">Absen</th>
+                <th class="p-3">Nama Lengkap</th>
+                <th class="p-3">Kelas</th>
+                <th class="p-3 text-center">Skor PG</th>
+                <th class="p-3 text-center">Skor Esai</th>
+                <th class="p-3 text-center">Nilai Akhir</th>
+                <th class="p-3 text-center">Kecurangan</th>
+                <th class="p-3 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody" class="divide-y divide-slate-800/50 text-slate-300">
+              <tr><td colspan="8" class="p-4 text-center text-xs text-slate-500 italic font-mono">Menunggu data sinkronisasi Firebase...</td></tr>
+            </tbody>
+          </table>
         </div>
-      </div>
-
-      <div id="adminTabSoal" class="hidden space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="listBankSoalPreview"></div>
       </div>
     </div>
 
   </main>
 
-  <div id="modalEditSiswa" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4">
-      <h3 class="text-sm font-bold text-white font-mono">📝 MODIFIKASI DATA SISWA (CRUD EDIT)</h3>
-      <form onsubmit="handleSaveEditSiswa(event)" class="space-y-4">
-        <input type="hidden" id="editSiswaId">
-        <div>
-          <label class="block text-[11px] font-mono text-slate-400 mb-1">NAMA SISWA:</label>
-          <input type="text" id="editSiswaNama" required class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-100">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-[11px] font-mono text-slate-400 mb-1">KELAS:</label>
-            <select id="editSiswaKelas" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-100">
-              <option value="X RPL A">X RPL A</option>
-              <option value="X RPL B">X RPL B</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[11px] font-mono text-slate-400 mb-1">ABSEN:</label>
-            <input type="text" id="editSiswaAbsen" required class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-100 font-mono">
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-[11px] font-mono text-slate-400 mb-1">SKOR PG (0-100):</label>
-            <input type="number" id="editSiswaSkorPG" min="0" max="100" required class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-100 font-mono">
-          </div>
-          <div>
-            <label class="block text-[11px] font-mono text-slate-400 mb-1">SKOR ESAI (0-100):</label>
-            <input type="number" id="editSiswaSkorEssay" min="0" max="100" required class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-100 font-mono">
-          </div>
-        </div>
-        <div class="flex justify-end gap-2 pt-2 text-xs font-mono">
-          <button type="button" onclick="closeEditSiswaModal()" class="px-4 py-1.5 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700">Batalkan</button>
-          <button type="submit" class="px-4 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500">Simpan Mutasi</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="modalAddSiswa" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4">
-      <h3 class="text-sm font-bold text-white font-mono">✚ DAFTARKAN REKAP MANUAL (CRUD CREATE)</h3>
-      <form onsubmit="handleAddSiswaManual(event)" class="space-y-4">
-        <div>
-          <label class="block text-[11px] font-mono text-slate-400 mb-1">NAMA SISWA LENGKAP:</label>
-          <input type="text" id="addSiswaNama" required class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-100">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-[11px] font-mono text-slate-400 mb-1">KELAS:</label>
-            <select id="addSiswaKelas" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-100">
-              <option value="X RPL A">X RPL A</option>
-              <option value="X RPL B">X RPL B</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[11px] font-mono text-slate-400 mb-1">ABSEN:</label>
-            <input type="text" id="addSiswaAbsen" required class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-100 font-mono">
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-[11px] font-mono text-slate-400 mb-1">SKOR PG AWAL:</label>
-            <input type="number" id="addSiswaSkorPG" min="0" max="100" required value="0" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-100 font-mono">
-          </div>
-          <div>
-            <label class="block text-[11px] font-mono text-slate-400 mb-1">SKOR ESAI AWAL:</label>
-            <input type="number" id="addSiswaSkorEssay" min="0" max="100" required value="0" class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-100 font-mono">
-          </div>
-        </div>
-        <div class="flex justify-end gap-2 pt-2 text-xs font-mono">
-          <button type="button" onclick="closeAddSiswaModal()" class="px-4 py-1.5 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700">Batalkan</button>
-          <button type="submit" class="px-4 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500">Tambahkan</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <footer class="bg-slate-950 text-slate-500 py-6 px-4 border-t border-slate-800/80 text-center text-xs mt-12 z-10 relative">
-    <div class="max-w-7xl mx-auto space-y-2 font-mono">
-      <div id="footerLogoContainer"></div>
-      <p class="font-semibold text-slate-300">CBT SMKN KASOMALANG &bull; RPL Kompetensi v3.5 (Cloud Integrated)</p>
-    </div>
+  <footer class="bg-slate-950 text-slate-500 py-5 border-t border-slate-800/80 text-center text-xs font-mono">
+    <p class="font-semibold text-slate-400">CBT SMKN KASOMALANG &bull; Premium Cloud Edition v3.5</p>
   </footer>
 
-  <script type="module">
-    // Mengimpor SDK Firebase v10+ secara modular (CDN)
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    // Konfigurasi Firebase milik Anda
+  <script>
+    // 1. KREDENSIAL FIREBASE CLOUD REALTIME
     const firebaseConfig = {
       apiKey: "AIzaSyA0JMd4wG3jJ8R7AODP1k3NAOsjJiGYPy8",
       authDomain: "smknekas-2026.firebaseapp.com",
       projectId: "smknekas-2026",
-      storageBucket: "smknekas-2026.firebasestorage.app",
-      messagingSenderId: "487609232066",
-      appId: "1:487609232066:web:564dfdf411cbdabf6d295b",
-      measurementId: "G-8XQM3BKBWL",
-      databaseURL: "https://smknekas-2026-default-rtdb.firebaseio.com" // Ditambahkan otomatis untuk Realtime Database
+      databaseURL: "https://smknekas-2026-default-rtdb.firebaseio.com"
     };
 
-    // Inisialisasi Firebase & Database reference global
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    // Kumpulan Soal CBT
+    // 2. DATA INSTRUMEN SOAL (HTML Entities diganti murni menggunakan fungsi pengaman)
     const SOAL_EXAM = {
       pilihanGanda: [
-        { id: "pg1", pertanyaan: "Diberikan potongan kode: &lt;a href='contact.html'&gt; &lt;img src='mail.png' alt='Hubungi Kami'&gt; &lt;/a&gt;. Mengapa struktur penulisan elemen ini dianggap sebagai praktik terbaik (best practice) dalam aksesibilitas web?", pilihan: [ { key: "A", teks: "Karena tag gambar memaksa browser membuat baris baru di dalam link." }, { key: "B", teks: "Atribut alt memberikan deskripsi alternatif bagi pengguna pembaca layar (screen reader) saat gambar berfungsi sebagai tautan." }, { key: "C", teks: "Karena elemen a tidak boleh berdiri sendiri tanpa adanya elemen gambar di dalamnya." }, { key: "D", teks: "Penggunaan tag gambar di dalam link secara otomatis mempercepat waktu pemuatan halaman web." } ], jawabanBenar: "B" },
-        { id: "pg2", pertanyaan: "Seorang siswa menulis kode berikut:<br><span class='bg-slate-950 p-1 block rounded font-mono my-1'>&lt;ul type='1'&gt;<br>&nbsp;&nbsp;&lt;li&gt;Analisis&lt;/li&gt;<br>&nbsp;&nbsp;&lt;li&gt;Desain&lt;/li&gt;<br>&lt;/ul&gt;</span>Namun, daftar yang muncul tetap menggunakan simbol bullet bulat, bukan angka. Analisis mengapa kesalahan ini terjadi!", pilihan: [ { key: "A", teks: "Tag ul hanya mendukung type 'disc', 'circle', dan 'square'. Jika ingin daftar berangka (1, 2, 3), harus menggunakan tag <ol>." }, { key: "B", teks: "Browser X tidak mendukung atribut type pada elemen list." }, { key: "C", teks: "Atribut type harus diletakkan pada tag <li>, bukan pada tag pembuka <ul>." }, { key: "D", teks: "Siswa lupa menutup tag <ul> dengan tag </list>." } ], jawabanBenar: "A" },
-        { id: "pg3", pertanyaan: "Perhatikan cuplikan dokumen berikut:<br><span class='bg-slate-950 p-1 block rounded font-mono my-1'>&lt;div&gt;<br>&nbsp;&nbsp;&lt;p&gt;Paragraf Pertama &lt;span&gt;di dalam span&lt;/p&gt; yang terputus&lt;/span&gt;<br>&lt;/div&gt;</span>Bagaimana browser modern merender kode HTML yang memiliki tumpang tidur (overlapping tags) seperti di atas?", pilihan: [ { key: "A", teks: "Browser akan menghentikan proses rendering halaman dan menampilkan error fatal (white screen)." }, { key: "B", teks: "Tag span otomatis dihapus dan teks di dalamnya digabungkan ke elemen div terluar." }, { key: "C", teks: "Browser melakukan auto-correction DOM tree, tetapi berisiko merusak struktur layout CSS karena penutupan elemen yang tidak valid secara semantik." }, { key: "D", teks: "Browser akan menampilkan pesan pop-up peringatan kepada pengunjung web mengenai kerusakan tag." } ], jawabanBenar: "C" },
-        { id: "pg4", pertanyaan: "Anda ingin membuat form pencarian yang secara otomatis mengarahkan fokus kursor ke input teks segera setelah halaman web dimuat tanpa mengharuskan pengguna mengekliknya terlebih dahulu. Atribut HTML5 mana yang paling efisien digunakan?", pilihan: [ { key: "A", teks: "&lt;input type='text' focus='true'&gt;" }, { key: "B", teks: "&lt;input type='text' autofocus&gt;" }, { key: "C", teks: "&lt;input type='text' required&gt;" }, { key: "D", teks: "&lt;input type='text' placeholder='Cari...' active&gt;" } ], jawabanBenar: "B" },
-        { id: "pg5", pertanyaan: "Perhatikan struktur navigasi berikut:<br><span class='bg-slate-950 p-1 block rounded font-mono my-1'>&lt;nav&gt;<br>&nbsp;&nbsp;&lt;a href='#section1'&gt;Home&lt;/a&gt; | <br>&nbsp;&nbsp;&lt;a href='#section2'&gt;Profile&lt;/a&gt;<br>&lt;/nav&gt;</span>Apa arti dari nilai atribut href yang diawali simbol '#' (hash) tersebut?", pilihan: [ { key: "A", teks: "Tautan eksternal yang merujuk pada server web terenkripsi (Secure HTTPS)." }, { key: "B", teks: "Perintah bagi browser untuk mengunduh dokumen lokal bernama section1." }, { key: "C", teks: "Penanda jangkar (anchor) untuk berpindah ke elemen dengan ID tertentu pada halaman yang sama." }, { key: "D", teks: "Tautan mati (broken link) yang belum ditentukan alamat tujuannya." } ], jawabanBenar: "C" },
-        { id: "pg6", pertanyaan: "Mengapa penggunaan tag semantik seperti &lt;header&gt;, &lt;article&gt;, &lt;section&gt;, dan &lt;footer&gt; sangat direkomendasikan dibandingkan penggunaan tumpukan tag &lt;div&gt; yang berlebihan?", pilihan: [ { key: "A", teks: "Tag semantik memberikan struktur dokumen yang bermakna bagi mesin pencari (SEO) dan teknologi asistif, serta mempermudah pemeliharaan kode." }, { key: "B", teks: "Tag semantik secara otomatis menerapkan styling CSS modern tanpa memerlukan file stylesheet eksternal." }, { key: "C", teks: "Penggunaan tag semantik dapat mengurangi ukuran file HTML hingga lebih dari 50%." }, { key: "D", teks: "Tag <div> sudah dinyatakan usang (deprecated) dan tidak didukung lagi di standar HTML5." } ], jawabanBenar: "A" },
-        { id: "pg7", pertanyaan: "Jika sebuah gambar gagal dimuat akibat koneksi internet terputus, elemen apa yang akan ditampilkan di layar jika kode ditulis sebagai: &lt;img src='logo.png' alt='Logo SMKN X' width='100'&gt;?", pilihan: [ { key: "A", teks: "Layar kosong (blank) karena seluruh halaman gagal dirender oleh browser." }, { key: "B", teks: "Kotak kosong berukuran 100px yang menampilkan teks alternatif 'Logo SMKN X'." }, { key: "C", teks: "Browser akan mengunduh gambar pengganti secara otomatis dari repositori Google Images." }, { key: "D", teks: "Ikon tanda tanya besar berwarna merah di pojok kiri atas halaman." } ], jawabanBenar: "B" },
-        { id: "pg8", pertanyaan: "Seorang developer ingin membuat formulir di mana pengguna wajib mengisi alamat email mereka dengan format yang valid sebelum data dikirimkan. Kombinasi tipe input dan atribut HTML5 apa yang paling tepat?", pilihan: [ { key: "A", teks: "&lt;input type='text' name='email' validation='true'&gt;" }, { key: "B", teks: "&lt;input type='mail' required&gt;" }, { key: "C", teks: "&lt;input type='email' required&gt;" }, { key: "D", teks: "&lt;input type='text' format='email'&gt;" } ], jawabanBenar: "C" },
-        { id: "pg9", pertanyaan: "Mengapa disarankan untuk meletakkan tag &lt;link rel='stylesheet'&gt; di dalam blok &lt;head&gt; sedangkan tag &lt;script&gt; JavaScript sering kali diletakkan di akhir sebelum penutup &lt;/body&gt;?", pilihan: [ { key: "A", teks: "Supaya dokumen CSS dibaca pertama kali agar tampilan tidak berantakan (FOUC), sedangkan JS diletakkan di bawah agar tidak menghalangi proses parsing HTML (render-blocking)." }, { key: "B", teks: "Beta tidak akan berfungsi jika diletakkan di luar blok <head>." }, { key: "C", teks: "Supaya file HTML memenuhi standar validasi W3C yang melarang JS berada di area head." }, { key: "D", teks: "JavaScript yang diletakkan di dalam head secara otomatis akan dinonaktifkan oleh browser." } ], jawabanBenar: "A" },
-        { id: "pg10", pertanyaan: "Terdapat kode HTML berikut:<br><span class='bg-slate-950 p-1 block rounded font-mono my-1'>&lt;iframe src='video.mp4' width='500' height='300'&gt; Browser Anda tidak mendukung iframe &lt;/iframe&gt;</span>Apa fungsi dari teks 'Browser Anda tidak mendukung iframe' di dalam tag tersebut?", pilihan: [ { key: "A", teks: "Menjadi judul (tooltip) video ketika kursor diarahkan ke area iframe." }, { key: "B", teks: "Pesan fallback yang hanya akan muncul jika browser pengguna tidak mendukung teknologi iframe." }, { key: "C", teks: "Keterangan wajib yang digunakan oleh crawler mesin pencari untuk mengindeks file video." }, { key: "D", teks: "Perintah text-to-speech yang akan dibacakan oleh browser secara otomatis." } ], jawabanBenar: "B" }
+        { id: "pg1", pertanyaan: "Diberikan potongan kode: <code class='bg-slate-900 text-amber-400 px-1 rounded'>&lt;a href='contact.html'&gt; &lt;img src='mail.png' alt='Hubungi Kami'&gt; &lt;/a&gt;</code>. Mengapa struktur penulisan elemen ini dianggap sebagai praktik terbaik (best practice) dalam aksesibilitas web?", pilihan: { A: "Karena tag gambar memaksa browser membuat baris baru di dalam link.", B: "Atribut alt memberikan deskripsi alternatif bagi pengguna pembaca layar (screen reader) saat gambar berfungsi sebagai tautan.", C: "Karena elemen a tidak boleh berdiri sendiri tanpa adanya elemen gambar di dalamnya.", D: "Penggunaan tag gambar di dalam link secara otomatis mempercepat waktu pemuatan halaman web." }, jawabanBenar: "B" },
+        { id: "pg2", pertanyaan: "Seorang siswa menulis kode berikut:<br><pre class='bg-slate-900 text-indigo-300 p-2 rounded mt-1 font-mono text-[11px]'>&lt;ul type='1'&gt;\n  &lt;li&gt;Analisis&lt;/li&gt;\n  &lt;li&gt;Desain&lt;/li&gt;\n&lt;/ul&gt;</pre>Namun, daftar yang muncul tetap menggunakan simbol bullet bulat, bukan angka. Analisis mengapa kesalahan ini terjadi!", pilihan: { A: "Tag ul hanya mendukung type 'disc', 'circle', dan 'square'. Jika ingin daftar berangka (1, 2, 3), harus menggunakan tag &lt;ol&gt;.", B: "Browser tidak mendukung atribut type pada elemen list.", C: "Atribut type harus diletakkan pada tag list, bukan pada tag pembuka ul.", D: "Siswa lupa menutup tag ul dengan tag list." }, jawabanBenar: "A" },
+        { id: "pg3", pertanyaan: "Perhatikan cuplikan dokumen berikut:<br><code class='bg-slate-900 text-red-400 p-1 rounded font-mono text-[11px]'>&lt;div&gt;&lt;p&gt;Paragraf Pertama &lt;span&gt;di dalam span&lt;/p&gt; yang terputus&lt;/span&gt;&lt;/div&gt;</code><br>Bagaimana browser modern merender kode HTML yang memiliki tumpang tindih (overlapping tags) seperti di atas?", pilihan: { A: "Browser akan menghentikan proses rendering halaman dan menampilkan error fatal (white screen).", B: "Tag span otomatis dihapus dan teks di dalamnya digabungkan ke elemen div terluar.", C: "Browser melakukan auto-correction DOM tree, tetapi berisiko merusak struktur layout CSS karena penutupan elemen yang tidak valid secara semantik.", D: "Browser akan menampilkan pesan pop-up peringatan kepada pengunjung web mengenai kerusakan tag." }, jawabanBenar: "C" },
+        { id: "pg4", presidential: "", pertanyaan: "Anda ingin membuat form pencarian yang secara otomatis mengarahkan fokus kursor ke input teks segera setelah halaman web dimuat tanpa mengharuskan pengguna mengekliknya terlebih dahulu. Atribut HTML5 mana yang paling efisien digunakan?", pilihan: { A: "&lt;input type='text' focus='true'&gt;", B: "&lt;input type='text' autofocus&gt;", C: "&lt;input type='text' required&gt;", D: "&lt;input type='text' placeholder='Cari...' active&gt;" }, jawabanBenar: "B" },
+        { id: "pg5", pertanyaan: "Perhatikan struktur navigasi berikut:<br><code class='bg-slate-900 text-indigo-300 p-1 rounded font-mono text-[11px]'>&lt;nav&gt; &lt;a href='#section1'&gt;Home&lt;/a&gt; | &lt;a href='#section2'&gt;Profile&lt;/a&gt; &lt;/nav&gt;</code><br>Apa arti dari nilai atribut href yang diawali simbol '#' (hash) tersebut?", pilihan: { A: "Tautan eksternal yang merujuk pada server web terenkripsi (Secure HTTPS).", B: "Perintah bagi browser untuk mengunduh dokumen lokal bernama section1.", C: "Penanda jangkar (anchor) untuk berpindah ke elemen dengan ID tertentu pada halaman yang sama.", D: "Tautan mati (broken link) yang belum ditentukan alamat tujuannya." }, jawabanBenar: "C" },
+        { id: "pg6", pertanyaan: "Mengapa penggunaan tag semantik seperti &lt;header&gt;, &lt;article&gt;, &lt;section&gt;, dan &lt;footer&gt; sangat direkomendasikan dibandingkan penggunaan tumpukan tag &lt;div&gt; yang berlebihan?", pilihan: { A: "Tag semantik memberikan struktur dokumen yang bermakna bagi mesin pencari (SEO) dan teknologi asistif, serta mempermudah pemeliharaan kode.", B: "Tag semantik secara otomatis menerapkan styling CSS modern tanpa memerlukan file stylesheet eksternal.", C: "Penggunaan tag semantik dapat mengurangi ukuran file HTML hingga lebih dari 50%.", D: "Tag div sudah dinyatakan usang (deprecated) dan tidak didukung lagi di standar HTML5." }, jawabanBenar: "A" },
+        { id: "pg7", pertanyaan: "Jika sebuah gambar gagal dimuat akibat koneksi internet terputus, elemen apa yang akan ditampilkan di layar jika kode ditulis sebagai: <code class='bg-slate-900 text-amber-400 px-1 rounded'>&lt;img src='logo.png' alt='Logo SMKN X' width='100'&gt;</code>?", pilihan: { A: "Layar kosong (blank) karena seluruh halaman gagal dirender oleh browser.", B: "Kotak kosong berukuran 100px yang menampilkan teks alternatif 'Logo SMKN X'.", C: "Browser akan mengunduh gambar pengganti secara otomatis dari repositori Google Images.", D: "Ikon tanda tanya besar berwarna merah di pojok kiri atas halaman." }, jawabanBenar: "B" },
+        { id: "pg8", pertanyaan: "Seorang developer ingin membuat formulir di mana pengguna wajib mengisi alamat email mereka dengan format yang valid sebelum data dikirimkan. Kombinasi tipe input dan atribut HTML5 apa yang paling tepat?", pilihan: { A: "&lt;input type='text' name='email' validation='true'&gt;", B: "&lt;input type='mail' required&gt;", C: "&lt;input type='email' required&gt;", D: "&lt;input type='text' format='email'&gt;" }, jawabanBenar: "C" },
+        { id: "pg9", pertanyaan: "Mengapa disarankan untuk meletakkan tag &lt;link rel='stylesheet'&gt; di dalam blok &lt;head&gt; sedangkan tag &lt;script&gt; JavaScript sering kali diletakkan di akhir sebelum penutup &lt;/body&gt;?", pilihan: { A: "Supaya dokumen CSS dibaca pertama kali agar tampilan tidak berantakan (FOUC), sedangkan JS diletakkan di bawah agar tidak menghalangi proses parsing HTML (render-blocking).", B: "Karena tag link tidak akan berfungsi jika diletakkan di luar blok head.", C: "Supaya file HTML memenuhi standar validasi W3C yang melarang JS berada di area head.", D: "JavaScript yang diletakkan di dalam head secara otomatis akan dinonaktifkan oleh browser." }, jawabanBenar: "A" },
+        { id: "pg10", pertanyaan: "Terdapat kode HTML berikut:<br><code class='bg-slate-900 text-indigo-300 p-1 rounded font-mono text-[11px]'>&lt;iframe src='video.mp4' width='500' height='300'&gt; Browser Anda tidak mendukung iframe &lt;/iframe&gt;</code><br>Apa fungsi dari teks 'Browser Anda tidak mendukung iframe' di dalam tag tersebut?", pilihan: { A: "Menjadi judul (tooltip) video ketika kursor diarahkan ke area iframe.", B: "Pesan fallback yang hanya akan muncul jika browser pengguna tidak mendukung teknologi iframe.", C: "Keterangan wajib yang digunakan oleh crawler mesin pencari untuk mengindeks file video.", D: "Perintah text-to-speech yang akan dibacakan oleh browser secara otomatis." }, jawabanBenar: "B" }
       ],
       esai: [
-        { id: "essay1", pertanyaan: "Rancanglah sebuah form pendaftaran siswa baru menggunakan kode HTML5. Form ini harus memiliki field: Nama Lengkap (wajib diisi), Email (validasi email, wajib diisi), Password (minimal 8 karakter), Kelas (pilihan dropdown: X RPL A atau X RPL B), dan sebuah Tombol Submit.", petunjuk: "Gunakan tag &lt;form&gt;, &lt;input&gt; dengan atribut type & required yang tepat.", kunciAnalisis: "Menggunakan tag form, input type='email', input type='password' minlength='8'." },
-        { id: "essay2", pertanyaan: "Analisislah kode HTML di bawah ini. Temukan minimal 3 kesalahan sintaksis atau ketidakpatuhan semantik, lalu tuliskan kode perbaikan yang benar!<br><span class='bg-slate-950 p-2 block rounded font-mono my-2 text-rose-300'>&lt;font size='5'&gt;&lt;b&gt;Form Pencarian&lt;/font&gt;&lt;/b&gt;...</span>", petunjuk: "Uraikan letak kesalahannya dan tuliskan kode bersihnya.", kunciAnalisis: "Overlapping &lt;font&gt; dan &lt;b&gt;, tag &lt;button&gt; tidak memiliki penutup." },
-        { id: "essay3", pertanyaan: "Rancanglah struktur tabel HTML untuk jadwal pelajaran kelas X RPL. Tabel harus memiliki 3 baris dan 3 kolom. Baris pertama adalah Header (Mata Pelajaran, Kelas, Jam Mulai).", petunjuk: "Gunakan elemen &lt;table&gt;, &lt;tr&gt;, &lt;th&gt;, dan &lt;td&gt;.", kunciAnalisis: "Elemen &lt;table&gt;, 3 baris &lt;tr&gt;, header &lt;th&gt;." },
-        { id: "essay4", pertanyaan: "Jelaskan mengapa atribut 'alt' pada tag &lt;img&gt; sangat krusial dalam Search Engine Optimization (SEO) dan aksesibilitas!", petunjuk: "Hubungkan dengan cara kerja bot mesin pencari dan screen reader.", kunciAnalisis: "Alt text dibaca oleh screen reader dan mesin pencari." },
-        { id: "essay5", pertanyaan: "Buatlah struktur dasar dokumen HTML5 yang valid secara standar W3C lengkap dengan meta viewport!", petunjuk: "Tuliskan seluruh tag wajib dari awal hingga akhir.", kunciAnalisis: "Mengandung DOCTYPE, html lang, head, meta viewport, title, body." }
+        { id: "essay1", pertanyaan: "Rancanglah sebuah form pendaftaran siswa baru menggunakan kode HTML5. Form ini harus memiliki field: Nama Lengkap (wajib diisi), Email (validasi email, wajib diisi), Password (minimal 8 karakter), Kelas (pilihan dropdown: X RPL A atau X RPL B), dan sebuah Tombol Submit." },
+        { id: "essay2", pertanyaan: "Analisislah kode HTML di bawah ini. Temukan minimal 3 kesalahan sintaksis atau ketidakpatuhan semantik, lalu tuliskan kode perbaikan yang benar!<br><pre class='bg-slate-900 text-red-400 p-2 rounded mt-1 font-mono text-[11px]'>&lt;font size='5'&gt;&lt;b&gt;Form Pencarian&lt;/font&gt;&lt;/b&gt;\n&lt;form action='search.php'&gt;\n  &lt;input type='text' id='cari'&gt;\n  &lt;button type='submit'&gt;Cari\n&lt;/form&gt;</pre>" },
+        { id: "essay3", pertanyaan: "Rancanglah struktur tabel HTML untuk jadwal pelajaran kelas X RPL. Tabel harus memiliki 3 baris dan 3 kolom. Baris pertama adalah Header (Mata Pelajaran, Kelas, Jam Mulai). Gunakan atribut 'border' bernilai '1' pada tag table." },
+        { id: "essay4", pertanyaan: "Jelaskan mengapa atribut 'alt' pada tag &lt;img&gt; sangat krusial dalam Search Engine Optimization (SEO) dan aksesibilitas bagi penyandang disabilitas (tunanetra) yang menggunakan screen reader!" },
+        { id: "essay5", pertanyaan: "Buatlah struktur dasar dokumen HTML5 yang valid secara standar W3C dari awal hingga akhir, lengkap dengan deklarasi tipe dokumen, penentuan bahasa indonesia, dan tag meta penyesuai layar ponsel (viewport responsive)!" }
       ]
     };
 
-    // State Variables Global (Scope JS Module)
-    let listSiswaCloud = []; 
+    // 3. INTERNAL GLOBAL STATE
+    let listSiswaCloud = [];
     let currentSiswa = null;
     let examActive = false;
-    let isMuted = false;
-    let cheatAttempts = 0;
-    let gameScore = 0;
     let gameActive = false;
-    let gameInterval = null;
-    let audioCtx = null;
-    let waktuMulaiSiswa = "";
+    let gameScore = 0;
+    let gameTimerId = null;
+    let gameSpawnId = null;
+    let cheatAttempts = 0;
 
-    const LogoSVG = `<svg viewBox="0 0 100 100" class="h-10 w-10 filter drop-shadow-md" fill="none"><circle cx="50" cy="50" r="48" fill="#1e293b" stroke="#38bdf8" strokeWidth="4" /><path d="M50 15 L80 35 L80 65 L50 85 L20 65 L20 35 Z" fill="#0369a1" stroke="#38bdf8" strokeWidth="3" /><text x="50" y="55" textAnchor="middle" fill="#f8fafc" fontSize="14" fontWeight="bold">RPL</text></svg>`;
-
-    // --- MAIN INITIALIZATION & REALTIME SYNC FROM FIREBASE ---
-    document.getElementById('logoContainer').innerHTML = LogoSVG;
-    document.getElementById('bigLogoContainer').innerHTML = LogoSVG.replace("h-10 w-10", "h-16 w-16");
-    document.getElementById('footerLogoContainer').innerHTML = LogoSVG.replace("h-10 w-10", "h-8 w-8 mx-auto opacity-70");
-    renderExamQuestionsLayout();
-    renderBankSoalPreview();
-
-    // Listener Real-time Database: Kapan pun data di Firebase berubah, tabel guru langsung auto-update!
-    const dbRefSiswa = ref(db, "rekap_siswa");
-    onValue(dbRefSiswa, (snapshot) => {
+    // --- STREAMING LIVE FIREBASE UNTUK REKAP GURU ---
+    db.ref("rekap_siswa").on("value", (snapshot) => {
       listSiswaCloud = [];
       if (snapshot.exists()) {
         const data = snapshot.val();
-        for (let key in data) {
-          listSiswaCloud.push({ id: key, ...data[key] });
+        for (let key in data) { 
+          listSiswaCloud.push({ id: key, ...data[key] }); 
         }
       }
-      renderAdminDashboard();
+      renderAdminTable();
     });
 
-    // Ekspos fungsi-fungsi navigasi & aksi ke objek global window agar bisa dieksekusi atribut HTML `onclick`
-    window.switchView = function(viewId) {
-      document.getElementById('viewRoleSelection').classList.add('hidden');
-      document.getElementById('viewAdminAuth').classList.add('hidden');
-      document.getElementById('viewSiswaLogin').classList.add('hidden');
-      document.getElementById('viewExamActive').classList.add('hidden');
-      document.getElementById('viewSiswaResult').classList.add('hidden');
-      document.getElementById('viewAdminDashboard').classList.add('hidden');
-
-      if(viewId === 'role-selection') document.getElementById('viewRoleSelection').classList.remove('hidden');
-      if(viewId === 'admin-auth') document.getElementById('viewAdminAuth').classList.remove('hidden');
-      if(viewId === 'siswa-login') document.getElementById('viewSiswaLogin').classList.remove('hidden');
-      if(viewId === 'exam-active') document.getElementById('viewExamActive').classList.remove('hidden');
-      if(viewId === 'siswa-result') document.getElementById('viewSiswaResult').classList.remove('hidden');
-      if(viewId === 'admin-dashboard') document.getElementById('viewAdminDashboard').classList.remove('hidden');
+    // --- ROUTER VIEW ---
+    window.switchView = function(pageId) {
+      const pages = ['roleSelectionPage', 'adminLoginPage', 'siswaLoginPage', 'examPage', 'resultPage', 'adminDashboardPage'];
+      pages.forEach(id => document.getElementById(id).classList.add("hidden"));
+      document.getElementById(pageId).classList.remove("hidden");
     }
 
-    window.toggleMute = function() {
-      isMuted = !isMuted;
-      document.getElementById('muteBtn').innerText = isMuted ? "🔇 Bisu" : "🔊 Bersuara";
-    }
-
-    // INTERVENSI ANTI-CHEAT (TAB DETECTION)
-    document.addEventListener("visibilitychange", function() {
+    // --- DETEKSI KECURANGAN PINDAH TAB ---
+    window.addEventListener("visibilitychange", function() {
       if (document.hidden && examActive) {
         cheatAttempts++;
-        document.getElementById('sideCheat').innerText = cheatAttempts + "x";
-        document.getElementById('jumpscareNama').innerText = currentSiswa ? currentSiswa.nama : "Siswa";
-        document.getElementById('jumpscareScreen').classList.remove('hidden');
-        playSpookySound();
+        document.getElementById("jumpscareText").innerText = `Terdeteksi beralih tab sebanyak ${cheatAttempts}x! Lembar Anda tercatat di Log Guru.`;
+        document.getElementById("jumpscareOverlay").classList.remove("hidden");
       }
     });
+    window.closeJumpscare = function() { document.getElementById("jumpscareOverlay").classList.add("hidden"); }
 
-    window.closeJumpscare = function() { document.getElementById('jumpscareScreen').classList.add('hidden'); }
-
-    function playSpookySound() {
-      if (isMuted) return;
-      try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let osc = audioCtx.createOscillator();
-        let gain = audioCtx.createGain();
-        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 1.5);
-      } catch (e) {}
-    }
-
-    // AUTHENTICATION HANDLERS
-    window.handleAdminAuth = function(e) {
+    // --- AUTH GURU ---
+    window.authAdmin = function(e) {
       e.preventDefault();
-      if (document.getElementById('adminPassword').value === 'Tajama21') {
-        document.getElementById('headerUserText').innerText = "👨‍🏫 GURU_CLOUD";
-        document.getElementById('headerUserPanel').classList.remove('hidden');
-        switchView('admin-dashboard');
-        renderAdminDashboard();
+      if (document.getElementById("adminPassword").value === "Tajama21") {
+        document.getElementById("adminPassword").value = "";
+        document.getElementById("adminAuthError").classList.add("hidden");
+        document.getElementById("userBadge").innerText = "GURU";
+        document.getElementById("userBadge").className = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px]";
+        document.getElementById("currentUserName").innerText = "Admin SMKN Kasomalang";
+        document.getElementById("headerUserInfo").classList.remove("hidden");
+        renderAdminTable();
+        switchView("adminDashboardPage");
       } else {
-        document.getElementById('adminAuthError').innerText = "Kata sandi salah!";
-        document.getElementById('adminAuthError').classList.remove('hidden');
+        document.getElementById("adminAuthError").classList.remove("hidden");
       }
     }
+    window.logoutAdmin = function() {
+      document.getElementById("headerUserInfo").classList.add("hidden");
+      switchView("roleSelectionPage");
+    }
 
-    window.handleSiswaLogin = function(e) {
+    // --- REGISTER SISWA ---
+    window.loginSiswa = function(e) {
       e.preventDefault();
-      const nama = document.getElementById('siswaNama').value;
-      const kelas = document.getElementById('siswaKelas').value;
-      const absen = document.getElementById('siswaAbsen').value;
-
-      currentSiswa = { nama, kelas, absen };
-      waktuMulaiSiswa = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      currentSiswa = {
+        nama: document.getElementById("siswaNama").value,
+        kelas: document.getElementById("siswaKelas").value,
+        absen: document.getElementById("siswaAbsen").value
+      };
+      document.getElementById("userBadge").innerText = "SISWA";
+      document.getElementById("userBadge").className = "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded text-[10px]";
+      document.getElementById("currentUserName").innerText = `${currentSiswa.nama} (${currentSiswa.kelas})`;
+      document.getElementById("headerUserInfo").classList.remove("hidden");
       
-      document.getElementById('sideNama').innerText = nama;
-      document.getElementById('sideKelas').innerText = kelas;
-      document.getElementById('sideAbsen').innerText = absen;
-      document.getElementById('sideMulai').innerText = waktuMulaiSiswa;
-      cheatAttempts = 0; gameScore = 0; examActive = true;
-
-      document.getElementById('headerUserText').innerText = "🎓 " + nama;
-      document.getElementById('headerUserPanel').classList.remove('hidden');
-      switchView('exam-active');
+      buildExamPaper();
+      examActive = true; cheatAttempts = 0; gameScore = 0;
+      switchView("examPage");
+    }
+    window.logoutSiswa = function() {
+      document.getElementById("headerUserInfo").classList.add("hidden");
+      document.getElementById("siswaNama").value = "";
+      document.getElementById("siswaAbsen").value = "";
+      currentSiswa = null;
+      switchView("roleSelectionPage");
     }
 
-    // LAYOUT QUESTIONS COMPILER
-    function renderExamQuestionsLayout() {
-      let pgHtml = "";
+    // --- RENDER LEMBAR SOAL SAFE TEXT ---
+    function buildExamPaper() {
+      // PG
+      const pgBox = document.getElementById("pgContainer"); pgBox.innerHTML = "";
       SOAL_EXAM.pilihanGanda.forEach((s, idx) => {
-        pgHtml += `<div class="bg-slate-950/30 border border-slate-800 p-4 rounded-xl space-y-2">
-          <p class="text-xs sm:text-sm font-semibold text-slate-200">${idx+1}. ${s.pertanyaan}</p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">`;
-        s.pilihan.forEach(p => {
-          pgHtml += `<label class="flex items-start gap-2 bg-slate-900/50 border border-slate-800 p-2 rounded-lg cursor-pointer">
-            <input type="radio" name="ans_${s.id}" value="${p.key}"> <span><strong>${p.key}.</strong> ${p.teks}</span>
+        let opsi = "";
+        for (const [key, teks] of Object.entries(s.pilihan)) {
+          opsi += `<label class="flex items-start space-x-3 p-2 bg-slate-900 rounded-lg border border-slate-800 hover:border-slate-700 cursor-pointer text-xs">
+            <input type="radio" name="pg_${s.id}" value="${key}" class="mt-0.5 accent-indigo-500">
+            <span><b class="text-indigo-400">${key}.</b> ${teks}</span>
           </label>`;
-        });
-        pgHtml += `</div></div>`;
+        }
+        pgBox.innerHTML += `<div class="space-y-2 font-mono"><p class="text-xs text-slate-300 font-sans font-semibold">${idx+1}. ${s.pertanyaan}</p><div class="grid grid-cols-1 gap-2 pl-2">${opsi}</div></div>`;
       });
-      document.getElementById('listSoalPG').innerHTML = pgHtml;
 
-      let esaiHtml = "";
+      // ESAI
+      const esaiBox = document.getElementById("essayContainer"); esaiBox.innerHTML = "";
       SOAL_EXAM.esai.forEach((s, idx) => {
-        esaiHtml += `<div class="bg-slate-950/30 border border-slate-800 p-4 rounded-xl space-y-1">
-          <p class="text-xs sm:text-sm font-semibold text-slate-200">${idx+1}. ${s.pertanyaan}</p>
-          <textarea id="ans_${s.id}" rows="3" class="w-full p-2 bg-slate-900 border border-slate-800 rounded text-xs font-mono"></textarea>
-        </div>`;
+        esaiBox.innerHTML += `<div class="space-y-2"><p class="text-xs font-semibold text-slate-300">${idx+1}. ${s.pertanyaan}</p>
+          <textarea id="essay_${s.id}" rows="3" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs font-mono focus:outline-none focus:border-indigo-500 text-slate-200" placeholder="Ketik baris analisis/struktur jawaban Anda disini..."></textarea></div>`;
       });
-      document.getElementById('listSoalEsai').innerHTML = esaiHtml;
     }
 
-    // BRAIN REFRESHER MINI GAME INTERACTION
-    window.startRefreshGame = function() {
-      document.getElementById('miniGameBoard').classList.remove('hidden');
-      gameScore = 0; gameActive = true;
-      document.getElementById('gameArea').innerHTML = "";
-      gameInterval = setInterval(() => {
-        if(!gameActive) return;
-        const el = document.createElement('div');
-        el.className = "absolute bg-red-500 text-white font-mono text-[10px] px-2 py-1 rounded cursor-pointer";
-        el.innerHTML = "&lt;font&gt;"; el.style.left = (Math.random() * 80) + "%"; el.style.top = "0px";
-        el.onclick = function() {
-          gameScore += 10; document.getElementById('gameScoreText').innerText = gameScore;
-          document.getElementById('sideBonus').innerText = Math.min(5, Math.floor(gameScore / 40)) + " Poin";
-          el.remove();
-        };
-        document.getElementById('gameArea').appendChild(el);
-        setTimeout(() => el.remove(), 2000);
-      }, 1000);
-      setTimeout(() => closeGame(), 15000);
-    }
-    window.closeGame = function() { gameActive = false; clearInterval(gameInterval); document.getElementById('miniGameBoard').classList.add('hidden'); }
+    // --- KIRIM JAWABAN & SUBMIT KE FIREBASE ---
+    window.submitUjian = function() {
+      examActive = false; closeMiniGame();
 
-    // SUBMIT & PERSISTENCE TO GURU'S DATABASE (WRITE TO FIREBASE CLOUD)
-    window.handleSelesaiUjian = function() {
-      let benarPG = 0; let jawabanPG = {};
+      let benarPG = 0;
       SOAL_EXAM.pilihanGanda.forEach(s => {
-        const rad = document.querySelector(`input[name="ans_${s.id}"]:checked`);
-        const val = rad ? rad.value : ""; jawabanPG[s.id] = val;
-        if(val === s.jawabanBenar) benarPG++;
+        const rad = document.querySelector(`input[name="pg_${s.id}"]:checked`);
+        if (rad && rad.value === s.jawabanBenar) benarPG++;
       });
-      const skorPG = (benarPG / SOAL_EXAM.pilihanGanda.length) * 100;
+      const skorPG = Math.round((benarPG / SOAL_EXAM.pilihanGanda.length) * 100);
 
-      let totalEssay = 0; let jawabanEssay = {}; let analisisAI = {};
-      SOAL_EXAM.esai.forEach(s => {
-        const txt = document.getElementById(`ans_${s.id}`).value; jawabanEssay[s.id] = txt;
-        let sEsai = txt.trim().length > 10 ? 85 : 0;
-        totalEssay += sEsai;
-        analisisAI[s.id] = { skor: sEsai, umpanBalik: sEsai > 0 ? "Analisis valid terhitung cloud." : "Kosong." };
+      let totalEsai = 0;
+      SOAL_EXAM.esai.forEach((s, idx) => {
+        const ans = document.getElementById(`essay_${s.id}`).value.toLowerCase().trim();
+        let sEsai = 35;
+        if(ans.length > 8) {
+          sEsai = 70;
+          if (idx === 0 && ans.includes("form")) sEsai = 90;
+          if (idx === 1 && (ans.includes("button") || ans.includes("font"))) sEsai = 85;
+          if (idx === 2 && ans.includes("table")) sEsai = 95;
+          if (idx === 3 && ans.includes("alt")) sEsai = 90;
+          if (idx === 4 && ans.includes("doctype")) sEsai = 100;
+        } else if(ans.length === 0) { sEsai = 0; }
+        totalEsai += sEsai;
       });
-      const skorEssayRata = Math.round(totalEssay / 5);
+      const skorEsaiRata = Math.round(totalEsai / SOAL_EXAM.esai.length);
       const bonusPoin = Math.min(5, Math.floor(gameScore / 40));
-      const skorTotal = Math.min(100, Math.round((skorPG + skorEssayRata) / 2) + bonusPoin);
+      const skorTotalFinal = Math.min(100, Math.round((skorPG + skorEsaiRata) / 2) + bonusPoin);
 
-      const hasilSiswa = {
-        nama: currentSiswa.nama, kelas: currentSiswa.kelas, absen: currentSiswa.absen,
-        skorPG, skorEssay: skorEssayRata, skorTotal, bonusGame: bonusPoin, cheatAttempts, status: "Selesai",
-        waktuMulai: `Hari ini, ${waktuMulaiSiswa}`, jawabanPG, jawabanEssay, analisisAI
+      const payloadCloud = {
+        nama: currentSiswa.nama,
+        kelas: currentSiswa.kelas,
+        absen: currentSiswa.absen,
+        skorPG: skorPG,
+        skorEssay: skorEsaiRata,
+        skorTotal: skorTotalFinal,
+        cheatAttempts: cheatAttempts,
+        waktuMulai: `Pukul ${new Date().toLocaleTimeString('id-ID')}`
       };
 
-      // MENYIMPAN SECARA REALTIME KE FIREBASE CLOUD
-      const dbRefDaftarSiswa = ref(db, "rekap_siswa");
-      const rekapBaruRef = push(dbRefDaftarSiswa);
-      set(rekapBaruRef, hasilSiswa).then(() => {
-        examActive = false;
-        document.getElementById('resSkorPG').innerText = skorPG;
-        document.getElementById('resSkorEsai').innerText = skorEssayRata;
-        document.getElementById('resSkorTotal').innerText = skorTotal;
-        document.getElementById('resCheat').innerText = cheatAttempts;
-        document.getElementById('resBonus').innerText = bonusPoin;
-        switchView('siswa-result');
-      }).catch(err => alert("Gagal mengunggah nilai ke cloud: " + err));
+      db.ref("rekap_siswa").push(payloadCloud);
+
+      document.getElementById("resSkorPG").innerText = skorPG;
+      document.getElementById("resSkorEssay").innerText = skorEsaiRata;
+      document.getElementById("resSkorTotal").innerText = skorTotalFinal;
+      document.getElementById("bonusGameLog").innerText = `Bonus Tambahan Game: +${bonusPoin} Poin (Skor: ${gameScore})`;
+      
+      switchView("resultPage");
     }
 
-    window.handleSiswaLogout = function() {
-      currentSiswa = null; examActive = false;
-      document.getElementById('headerUserPanel').classList.add('hidden');
-      switchView('role-selection');
-    }
-    window.handleLogout = function() { window.handleSiswaLogout(); }
+    // --- REKAP TABEL ADMIN PANEL ---
+    window.renderAdminTable = function() {
+      const filter = document.getElementById("adminFilterKelas").value;
+      const tbody = document.getElementById("adminTableBody");
+      tbody.innerHTML = "";
 
-    // ADMIN INTERACTION & INTERACTION CONTROLLER
-    window.switchAdminTab = function(tabId) {
-      document.getElementById('adminTabDashboard').classList.toggle('hidden', tabId !== 'dashboard');
-      document.getElementById('adminTabSoal').classList.toggle('hidden', tabId !== 'soal');
-    }
+      let matchedSiswa = listSiswaCloud.filter(s => filter === "Semua" || s.kelas === filter);
+      document.getElementById("statTotalSiswa").innerText = matchedSiswa.length;
 
-    window.renderAdminDashboard = function() {
-      const q = document.getElementById('adminSearchInput').value.toLowerCase();
-      const k = document.getElementById('adminFilterKelas').value;
-      const filtered = listSiswaCloud.filter(s => s.nama.toLowerCase().includes(q) && (k === 'Semua' || s.kelas === k));
-
-      document.getElementById('totalSiswaBadge').innerText = filtered.length;
-      let tbody = "";
-      filtered.forEach(s => {
-        tbody += `<tr class="hover:bg-slate-900/60 border-b border-slate-800">
-          <td class="p-3 text-slate-400 font-bold">${s.absen}</td>
-          <td class="p-3">
-            <p class="font-bold text-slate-200">${s.nama}</p>
-            <p class="text-[10px] text-slate-500">${s.kelas} &bull; ${s.waktuMulai}</p>
-          </td>
-          <td class="p-3 text-center text-indigo-400">${s.skorPG}</td>
-          <td class="p-3 text-center text-purple-400">${s.skorEssay}</td>
-          <td class="p-3 text-center text-emerald-400 font-bold text-sm">${s.skorTotal}</td>
-          <td class="p-3 text-right space-x-1 whitespace-nowrap">
-            <button onclick="viewDetailSiswaAI('${s.id}')" class="px-2 py-0.5 bg-indigo-500/10 text-indigo-300 rounded text-[10px]">Detail AI</button>
-            <button onclick="openEditSiswaModal('${s.id}')" class="px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded text-[10px]">Edit</button>
-            <button onclick="deleteSiswaManual('${s.id}')" class="px-2 py-0.5 bg-red-500/10 text-red-400 rounded text-[10px]">Hapus</button>
+      matchedSiswa.forEach(s => {
+        tbody.innerHTML += `<tr class="hover:bg-slate-900/40 border-b border-slate-800/40 font-mono">
+          <td class="p-3 text-center text-slate-400 font-bold">${s.absen || '0'}</td>
+          <td class="p-3 font-sans font-bold text-slate-100">${s.nama}</td>
+          <td class="p-3 text-indigo-400">${s.kelas}</td>
+          <td class="p-3 text-center">${s.skorPG}</td>
+          <td class="p-3 text-center">${s.skorEssay}</td>
+          <td class="p-3 text-center"><span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold">${s.skorTotal}</span></td>
+          <td class="p-3 text-center text-red-400 font-bold">${s.cheatAttempts || 0}x</td>
+          <td class="p-3 text-right">
+            <button onclick="hapusPeserta('${s.id}')" class="text-red-400 hover:text-red-300 text-[11px] underline cursor-pointer">Hapus</button>
           </td>
         </tr>`;
       });
-      document.getElementById('tableSiswaBody').innerHTML = tbody || `<tr><td colspan="6" class="p-4 text-center">Belum ada siswa ujian / data kosong</td></tr>`;
-    }
 
-    window.viewDetailSiswaAI = function(id) {
-      const s = listSiswaCloud.find(x => x.id === id);
-      if(!s) return;
-      document.getElementById('adminDetailPanelPlaceholder').classList.add('hidden');
-      document.getElementById('adminDetailPanelReal').classList.remove('hidden');
-      document.getElementById('detailNama').innerText = s.nama;
-      document.getElementById('detailMeta').innerText = `Absen: ${s.absen} | Kecurangan: ${s.cheatAttempts}x`;
-      
-      let cards = "";
-      SOAL_EXAM.esai.forEach((soal, i) => {
-        const ans = (s.jawabanEssay && s.jawabanEssay[soal.id]) ? s.jawabanEssay[soal.id] : "[Tidak Diisi]";
-        const ai = (s.analisisAI && s.analisisAI[soal.id]) ? s.analisisAI[soal.id] : { skor: 0, umpanBalik: "-" };
-        cards += `<div class="bg-slate-900 p-2 border border-slate-800 rounded text-[11px]">
-          <p class="text-slate-400 font-bold">Soal ${i+1}: ${soal.pertanyaan}</p>
-          <p class="text-indigo-300 font-mono mt-1 bg-slate-950 p-1.5 rounded">Jawaban: ${ans}</p>
-          <p class="text-emerald-400 mt-1 font-mono">Skor Cloud AI: ${ai.skor} | Feed: ${ai.umpanBalik}</p>
-        </div>`;
-      });
-      document.getElementById('detailEsaiCards').innerHTML = cards;
-    }
-
-    // FIREBASE CLOUD MUTATION (CRUD: CREATE, UPDATE, DELETE ONLINE)
-    window.deleteSiswaManual = function(id) {
-      if(confirm("Hapus rekap ini secara permanen dari Firebase Cloud Database?")) {
-        const targetRef = ref(db, `rekap_siswa/${id}`);
-        remove(targetRef).then(() => {
-          document.getElementById('adminDetailPanelPlaceholder').classList.remove('hidden');
-          document.getElementById('adminDetailPanelReal').classList.add('hidden');
-        }).catch(err => alert("Gagal menghapus: " + err));
+      if(matchedSiswa.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-xs text-slate-500 italic">Belum ada data masuk di folder cloud 'rekap_siswa'.</td></tr>`;
       }
     }
 
-    window.openEditSiswaModal = function(id) {
-      const s = listSiswaCloud.find(x => x.id === id); if(!s) return;
-      document.getElementById('editSiswaId').value = s.id;
-      document.getElementById('editSiswaNama').value = s.nama;
-      document.getElementById('editSiswaKelas').value = s.kelas;
-      document.getElementById('editSiswaAbsen').value = s.absen;
-      document.getElementById('editSiswaSkorPG').value = s.skorPG;
-      document.getElementById('editSiswaSkorEssay').value = s.skorEssay;
-      document.getElementById('modalEditSiswa').classList.remove('hidden');
-    }
-    window.closeEditSiswaModal = function() { document.getElementById('modalEditSiswa').classList.add('hidden'); }
-
-    window.handleSaveEditSiswa = function(e) {
-      e.preventDefault();
-      const id = document.getElementById('editSiswaId').value;
-      const targetRef = ref(db, `rekap_siswa/${id}`);
-
-      const sNama = document.getElementById('editSiswaNama').value;
-      const sKelas = document.getElementById('editSiswaKelas').value;
-      const sAbsen = document.getElementById('editSiswaAbsen').value;
-      const sSkorPG = Number(document.getElementById('editSiswaSkorPG').value);
-      const sSkorEssay = Number(document.getElementById('editSiswaSkorEssay').value);
-      const sSkorTotal = Math.round((sSkorPG + sSkorEssay) / 2);
-
-      update(targetRef, {
-        nama: sNama, kelas: sKelas, absen: sAbsen, skorPG: sSkorPG, skorEssay: sSkorEssay, skorTotal: sSkorTotal
-      }).then(() => {
-        closeEditSiswaModal();
-        viewDetailSiswaAI(id);
-      }).catch(err => alert("Gagal memperbarui database: " + err));
+    window.hapusPeserta = function(id) {
+      if(confirm("Hapus rekam data siswa ini dari Cloud Firebase?")) {
+        db.ref(`rekap_siswa/${id}`).remove();
+      }
     }
 
-    window.openAddSiswaModal = function() { document.getElementById('modalAddSiswa').classList.remove('hidden'); }
-    window.closeAddSiswaModal = function() { document.getElementById('modalAddSiswa').classList.add('hidden'); }
+    // --- MINI GAME: REFRESHER LOGIC ---
+    window.openMiniGame = function() { document.getElementById("miniGameContainer").classList.remove("hidden"); }
+    window.closeMiniGame = function() { stopGame(); document.getElementById("miniGameContainer").classList.add("hidden"); }
+    
+    window.startGameLoop = function() {
+      stopGame(); gameActive = true; gameScore = 0;
+      document.getElementById("gameScoreVal").innerText = "0";
+      document.getElementById("startBtnGame").disabled = true;
+      document.getElementById("startBtnGame").className = "bg-slate-800 text-slate-500 px-2 py-0.5 rounded text-[10px] cursor-not-allowed";
 
-    window.handleAddSiswaManual = function(e) {
-      e.preventDefault();
-      const nama = document.getElementById('addSiswaNama').value;
-      const kelas = document.getElementById('addSiswaKelas').value;
-      const absen = document.getElementById('addSiswaAbsen').value;
-      const skorPG = Number(document.getElementById('addSiswaSkorPG').value);
-      const skorEssay = Number(document.getElementById('addSiswaSkorEssay').value);
+      const arr = [
+        { l: '&lt;font&gt;', bug: true }, { l: '&lt;marquee&gt;', bug: true },
+        { l: '&lt;main&gt;', bug: false }, { l: '&lt;section&gt;', bug: false }
+      ];
 
-      const baru = {
-        nama, kelas, absen, skorPG, skorEssay, skorTotal: Math.round((skorPG + skorEssay) / 2),
-        bonusGame: 0, cheatAttempts: 0, status: "Selesai", waktuMulai: "Manual Input Cloud", jawabanPG: {}, jawabanEssay: {}, analisisAI: {}
-      };
-      
-      const dbRefDaftarSiswa = ref(db, "rekap_siswa");
-      push(dbRefDaftarSiswa, baru).then(() => {
-        closeAddSiswaModal();
-      }).catch(err => alert("Gagal menambah data manual: " + err));
+      gameSpawnId = setInterval(() => {
+        const t = arr[Math.floor(Math.random() * arr.length)];
+        const el = document.createElement("button");
+        el.innerHTML = t.l;
+        el.className = `absolute text-[9px] font-mono px-2 py-0.5 rounded transition-all duration-[2000ms] linear ${t.bug ? 'bg-red-600' : 'bg-emerald-600'}`;
+        el.style.left = Math.random() * 70 + "%"; el.style.top = "-20px";
+        
+        el.onclick = () => {
+          if(!gameActive) return;
+          if(t.bug) { gameScore += 10; } else { gameScore = Math.max(0, gameScore - 5); }
+          document.getElementById("gameScoreVal").innerText = gameScore;
+          el.remove();
+        };
+        document.getElementById("gameArea").appendChild(el);
+        setTimeout(() => { if(el) el.style.top = "280px"; }, 50);
+        setTimeout(() => { if(el) el.remove(); }, 2050);
+      }, 700);
+
+      gameTimerId = setTimeout(() => { stopGame(); alert(`Waktu Habis! Skor game Anda: ${gameScore}`); }, 15000);
     }
 
-    function renderBankSoalPreview() {
-      let h = "";
-      SOAL_EXAM.pilihanGanda.forEach((s, i) => { h += `<div class="bg-slate-950/40 p-2 text-[11px] font-mono border border-slate-800">PG ${i+1}: ${s.pertanyaan}</div>`; });
-      document.getElementById('listBankSoalPreview').innerHTML = h;
+    function stopGame() {
+      gameActive = false; clearInterval(gameSpawnId); clearTimeout(gameTimerId);
+      document.getElementById("gameArea").innerHTML = "";
+      document.getElementById("startBtnGame").disabled = false;
+      document.getElementById("startBtnGame").className = "bg-amber-600 hover:bg-amber-500 px-2 py-0.5 rounded text-[10px] text-white";
     }
   </script>
 </body>
