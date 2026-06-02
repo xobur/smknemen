@@ -4,18 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CBT Web HTML XI RPL Kasomalang - AI Evaluation</title>
-  <!-- Tailwind CSS -->
+  
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Firebase App & Firestore -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   
   <style>
-    /* Custom Scrollbar */
+    /* Kustomisasi Scrollbar Premium */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -34,7 +33,6 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col justify-between">
 
-  <!-- HEADER -->
   <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 sticky top-0 z-50 shadow-md">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
       <div class="flex items-center gap-3">
@@ -58,14 +56,12 @@
     </div>
   </header>
 
-  <!-- NOTIFICATION TOAST -->
   <div id="toast-container" class="fixed top-20 right-4 z-50 max-w-sm hidden">
     <div id="toast-card" class="p-4 rounded-xl shadow-2xl border bg-slate-900 text-slate-200 border-indigo-500/30">
       <p id="toast-message" class="text-sm font-medium"></p>
     </div>
   </div>
 
-  <!-- MODAL KECURANGAN (CHEAT DETECTED) -->
   <div id="cheat-modal" class="fixed inset-0 z-[100] bg-rose-950/95 backdrop-blur-md flex items-center justify-center p-4 hidden">
     <div class="bg-slate-900 border-2 border-rose-500 rounded-3xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl">
       <div class="inline-block bg-rose-500/10 text-rose-400 p-4 rounded-full">
@@ -81,7 +77,7 @@
         <p class="text-xs text-rose-300 uppercase font-bold">Log Pelanggaran Anda</p>
         <p class="text-3xl font-black text-white mt-1" id="cheat-count-display">0</p>
         <p class="text-sm font-bold text-rose-400 mt-2" id="cheat-penalty-display">Potongan Nilai: -0 Poin</p>
-        <p class="text-[10px] text-rose-500 mt-1.5">Setiap 1 pelanggaran akan mengurangi nilai akhir sebesar 5 poin pada kalkulasi kalkulator sistem.</p>
+        <p class="text-[10px] text-rose-500 mt-1.5">Setiap 1 pelanggaran akan mengurangi nilai akhir sebesar 5 poin pada kalkulasi sistem.</p>
       </div>
       <button onclick="dismissCheatModal()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-rose-600/30">
         Saya Mengerti & Kembali Ujian
@@ -89,16 +85,13 @@
     </div>
   </div>
 
-  <!-- MAIN CONTAINER -->
   <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8 flex flex-col justify-center">
 
-    <!-- PAGE: LOADING SCREEN -->
     <div id="page-loading" class="text-center py-20">
       <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto mb-4"></div>
       <p class="text-slate-400 text-sm">Menyiapkan sistem database & AI Validator...</p>
     </div>
 
-    <!-- PAGE: LOGIN SISWA -->
     <div id="page-login" class="hidden max-w-md w-full mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl">
       <div class="text-center mb-8">
         <div class="inline-block bg-indigo-500/10 text-indigo-400 p-3 rounded-2xl mb-4">
@@ -134,11 +127,11 @@
 
         <div class="bg-slate-950 rounded-xl p-4 border border-slate-800/80 text-xs text-slate-400 space-y-1.5">
           <p class="font-semibold text-slate-300"><i class="fa-solid fa-circle-info text-indigo-400 mr-1"></i> Informasi Ujian & Keamanan:</p>
-          <p>• 10 Soal Pilihan Ganda (HOTS - bernilai otomatis).</p>
-          <p>• 5 Soal Essay (Koreksi Instan oleh kecerdasan buatan Gemini AI).</p>
-          <p>• AI akan mendeteksi kelebihan, kekurangan, dan skor secara objektif.</p>
-          <p>• <strong class="text-rose-400">Pengawasan Nilai:</strong> Tidak ada pemblokiran layar. Namun, setiap aksi berpindah tab/keluar dari browser akan langsung **mengurangi nilai akhir sebesar 5 poin**.</p>
-          <p>• Durasi pengerjaan: 45 Menit.</p>
+          <p class="pl-3">- 10 Soal Pilihan Ganda (HOTS - bernilai otomatis).</p>
+          <p class="pl-3">- 5 Soal Essay (Koreksi Instan oleh kecerdasan buatan Gemini AI).</p>
+          <p class="pl-3">- AI akan mendeteksi kelebihan, kekurangan, dan skor secara objektif.</p>
+          <p class="pl-3">- <strong class="text-rose-400">Pengawasan Nilai:</strong> Setiap aksi keluar halaman browser akan langsung **mengurangi nilai akhir sebesar 5 poin**.</p>
+          <p class="pl-3">- Durasi pengerjaan: 45 Menit.</p>
         </div>
 
         <button 
@@ -150,11 +143,8 @@
       </form>
     </div>
 
-    <!-- PAGE: EXAM INTERFACE -->
     <div id="page-exam" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Kolom Kiri: Soal -->
       <div class="lg:col-span-2 space-y-8">
-        <!-- Info Siswa -->
         <div class="bg-gradient-to-r from-indigo-950 to-slate-900 border border-indigo-500/20 rounded-2xl p-6 flex justify-between items-center shadow-lg">
           <div>
             <span class="text-xs font-bold uppercase text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full">Siswa Aktif</span>
@@ -167,7 +157,6 @@
           </div>
         </div>
 
-        <!-- Bagian I: PG -->
         <div class="space-y-6">
           <div class="border-b border-slate-800 pb-3">
             <h2 class="text-lg font-bold text-indigo-400 flex items-center gap-2">
@@ -179,23 +168,21 @@
           <div id="pg-container" class="space-y-6"></div>
         </div>
 
-        <!-- Bagian II: Essay -->
         <div class="space-y-6 pt-6">
           <div class="border-b border-slate-800 pb-3">
             <h2 class="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <span class="bg-emerald-500/10 text-emerald-400 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-mono">II</span>
               Essay Komprehensif (Penilaian Gemini AI)
             </h2>
-            <p class="text-xs text-slate-400 ml-9">Tulis analisis Anda dengan komplit. AI akan mengevaluasi logika & ketepatan teknis Anda.</p>
+            <p class="text-xs text-slate-400 ml-9">Tulis analisis Anda dengan komplit. AI akan mengevaluasi logika & ketepatan teknis Anda secara real-time.</p>
           </div>
           <div id="essay-container" class="space-y-6"></div>
         </div>
 
-        <!-- Submit Button -->
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-4 shadow-xl">
           <div>
             <h4 class="font-bold text-slate-200">Kirim Lembar Ujian Sekarang?</h4>
-            <p class="text-xs text-slate-400">Setelah dikirim, Gemini AI akan menganalisis jawaban essay Anda dalam beberapa detik.</p>
+            <p class="text-xs text-slate-400">Setelah dikirim, Gemini AI akan menganalisis jawaban esai Anda dalam beberapa detik secara komprehensif.</p>
           </div>
           <button
             onclick="confirmSubmitModal()"
@@ -206,13 +193,12 @@
         </div>
       </div>
 
-      <!-- Kolom Kanan: Navigasi & Timer -->
       <div class="lg:col-span-1 space-y-6">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl sticky top-24 shadow-lg space-y-6">
           <div class="flex justify-between items-center">
             <div>
               <h3 class="font-bold text-slate-200">Navigasi Soal</h3>
-              <p class="text-xs text-slate-400">Status kelengkapan jawaban Anda.</p>
+              <p class="text-xs text-slate-400">Status kelengkapan pengerjaan Anda.</p>
             </div>
             <div class="text-right">
               <span id="exam-timer" class="font-mono font-bold text-amber-400 text-lg">45:00</span>
@@ -237,7 +223,7 @@
               <span>Terjawab:</span>
               <span id="nav-stat-answered" class="font-bold text-slate-200">0 / 15</span>
             </div>
-            <div class="flex justify-between flex-col gap-1">
+            <div class="flex justify-between flex-col gap-1 border-t border-slate-800/60 pt-2">
               <span class="text-slate-400">Pelanggaran Layar:</span>
               <span id="nav-stat-cheat" class="font-bold text-rose-400">0 Pelanggaran (-0 Poin)</span>
             </div>
@@ -246,7 +232,6 @@
       </div>
     </div>
 
-    <!-- PAGE: AI EVALUATION LOADING -->
     <div id="page-ai-evaluating" class="hidden text-center py-20 max-w-lg mx-auto">
       <div class="relative w-24 h-24 mx-auto mb-6">
         <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
@@ -262,7 +247,6 @@
       </div>
     </div>
 
-    <!-- PAGE: FINISHED & AI RESULT -->
     <div id="page-finished" class="hidden max-w-3xl w-full mx-auto space-y-8">
       <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center space-y-6">
         <div class="inline-block bg-emerald-500/10 text-emerald-400 p-4 rounded-full" id="result-badge-icon">
@@ -288,7 +272,6 @@
           </div>
         </div>
 
-        <!-- Detail Analisis AI Per Soal -->
         <div class="text-left space-y-4 pt-4">
           <h3 class="text-md font-bold text-slate-200 border-b border-slate-800 pb-2 flex items-center gap-2">
             <i class="fa-solid fa-microchip text-indigo-400"></i> Rekomendasi & Hasil Koreksi Esai Anda (Oleh AI)
@@ -305,7 +288,6 @@
       </div>
     </div>
 
-    <!-- PAGE: ADMIN LOGIN -->
     <div id="page-admin-login" class="hidden max-w-md w-full mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
       <div class="text-center">
         <span class="text-3xl">🔐</span>
@@ -335,9 +317,7 @@
       </form>
     </div>
 
-    <!-- PAGE: ADMIN DASHBOARD -->
     <div id="page-admin-dashboard" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Kolom Kiri: Form Edit / Tinjauan AI Detil -->
       <div class="lg:col-span-1 space-y-6">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg space-y-6">
           <div class="border-b border-slate-800 pb-3 flex justify-between items-center">
@@ -381,7 +361,6 @@
               </div>
             </div>
 
-            <!-- Tinjauan AI -->
             <div class="border-t border-slate-800 pt-4 space-y-3">
               <h4 class="text-xs font-bold uppercase text-indigo-400 flex items-center gap-1.5">
                 <i class="fa-solid fa-robot"></i> Analisis AI Terhadap Siswa
@@ -398,7 +377,6 @@
         </div>
       </div>
 
-      <!-- Kolom Kanan: Tabel CRUD Rekap Nilai -->
       <div class="lg:col-span-2 space-y-6">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-lg">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4 mb-4">
@@ -424,7 +402,7 @@
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="border-b border-slate-800 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  <th class="py-3 px-2">No</th>
+                  <th class="py-3 px-2 text-center">No</th>
                   <th class="py-3 px-4">Nama</th>
                   <th class="py-3 px-3">Kelas</th>
                   <th class="py-3 px-3 text-center">PG (50)</th>
@@ -445,7 +423,6 @@
       </div>
     </div>
 
-    <!-- MODAL CONFIRM SUBMIT -->
     <div id="confirm-submit-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 hidden">
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-sm w-full text-center space-y-4 shadow-2xl">
         <div class="w-16 h-16 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto text-2xl">
@@ -468,7 +445,6 @@
 
   </main>
 
-  <!-- FOOTER -->
   <footer class="bg-slate-950 border-t border-slate-900 py-6 px-6 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto space-y-2">
       <p>© 2026 SMK Negeri 1 Kasomalang • Bidang Keahlian Rekayasa Perangkat Lunak (RPL).</p>
@@ -476,9 +452,8 @@
     </div>
   </footer>
 
-  <!-- PROGRAM UTAMA / JAVASCRIPT -->
   <script>
-    // --- HELPER FUNCTION: ESCAPE HTML TO TEXT ---
+    // --- HELPER FUNCTION: SANITASI INPUT HTML (Mencegah XSS & Error Render) ---
     function escapeHTML(str) {
       if (!str) return '';
       return str
@@ -489,11 +464,11 @@
         .replace(/'/g, "&#039;");
     }
 
-    // --- KONFIGURASI FIREBASE ---
+    // --- KONFIGURASI INTEGRASI FIREBASE CLOUD ---
     const firebaseConfig = typeof __firebase_config !== 'undefined' 
       ? JSON.parse(__firebase_config) 
       : {
-          apiKey: "", // Diisi otomatis oleh sistem
+          apiKey: "", // Diinjeksi otomatis oleh platform Canvas saat runtime
           authDomain: "smknekas-2026.firebaseapp.com",
           projectId: "smknekas-2026",
           storageBucket: "smknekas-2026.firebasestorage.app",
@@ -501,8 +476,8 @@
           appId: "1:487609232066:web:6c2ecd64e8aef1106d295b"
         };
 
-    // Global App Configuration & State
-    const apiKey = ""; // Mengikuti aturan: dibiarkan kosong agar diinjeksi runtime
+    // Variabel Token Global Sistem
+    const apiKey = ""; // Diisi otomatis oleh platform saat dipublikasikan
     const appId = typeof __app_id !== 'undefined' ? __app_id : "cbt-xi-rpl-kasomalang";
     
     let db, auth;
@@ -510,15 +485,16 @@
     let pgAnswers = {};
     let essayAnswers = {};
     let timerInterval = null;
-    let timeLeft = 2700; // 45 Menit
+    let timeLeft = 2700; // Alokasi Waktu: 45 Menit
     let studentsList = [];
     let selectedStudent = null;
     let isAdminLoggedIn = false;
     let cheatCount = 0;
-    const penaltyPerCheat = 5; // Pengurangan 5 Poin per satu pelanggaran
+    const penaltyPerCheat = 5; // Penalti ketat: Potongan 5 Poin per tab-out
     let isExamActive = false;
+    let isSubscribed = false; // Flag anti-duplikasi listener snapshot
 
-    // --- DATA SOAL (10 PG HOTS, 5 ESSAY KOMPREHENSIF) ---
+    // --- BANK DATA SOAL (10 PG HOTS & 5 ESSAY KOMPREHENSIF) ---
     const QUESTIONS_PG = [
       {
         id: 'pg1',
@@ -660,18 +636,27 @@
       }
     ];
 
-    // --- INITIALIZATION ---
+    // --- INITIALIZATION (ONLOAD ENGINE) ---
     window.onload = async function() {
       try {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
         auth = firebase.auth();
 
-        // Rule 3: Auth Before Queries - Prioritize __initial_auth_token
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await auth.signInWithCustomToken(__initial_auth_token);
-        } else {
-          await auth.signInAnonymously();
+        // Autentikasi Wajib sebelum melakukan kueri data (Aturan Khas Firebase)
+        const initAuth = async () => {
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            return await auth.signInWithCustomToken(__initial_auth_token);
+          } else {
+            return await auth.signInAnonymously();
+          }
+        };
+
+        const userCredential = await initAuth();
+        currentUser = userCredential.user;
+
+        if (currentUser) {
+          setupRealtimeSync();
         }
 
         auth.onAuthStateChanged((user) => {
@@ -681,7 +666,7 @@
           }
         });
 
-        // Generate UI elements
+        // Konstruksi komponen DOM soal & navigasi
         buildPGQuestions();
         buildEssayQuestions();
         buildNavigationGrids();
@@ -690,12 +675,12 @@
         setupAntiCheatDetection();
       } catch (err) {
         console.error("Firebase Init Error:", err);
-        showToast("Gagal terhubung ke server database Cloud. Fitur offline aktif.", "error");
+        showToast("Koneksi cloud database terputus. Mengaktifkan mode simulator lokal.", "error");
         switchPage('login');
       }
     };
 
-    // --- SWITICHING PAGES ---
+    // --- MANAJEMEN HALAMAN (SWITCH LAYOUT) ---
     function switchPage(pageId) {
       const pages = ['page-loading', 'page-login', 'page-exam', 'page-ai-evaluating', 'page-finished', 'page-admin-login', 'page-admin-dashboard'];
       pages.forEach(p => {
@@ -706,7 +691,6 @@
       const activeEl = document.getElementById(`page-${pageId}`);
       if (activeEl) activeEl.classList.remove('hidden');
 
-      // Adjust Header Actions
       const btnPortal = document.getElementById('btn-admin-portal');
       const btnLogout = document.getElementById('btn-admin-logout');
 
@@ -722,7 +706,7 @@
       }
     }
 
-    // --- BUILD SOAL PG ---
+    // --- DOM BUILDER: PILIHAN GANDA ---
     function buildPGQuestions() {
       const container = document.getElementById('pg-container');
       container.innerHTML = '';
@@ -732,7 +716,6 @@
         card.className = "bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 hover:border-indigo-500/30 transition shadow-md";
         card.id = `qcard-pg-${index + 1}`;
 
-        // Question Statement
         const questionHeader = document.createElement('div');
         questionHeader.className = "flex gap-3";
         questionHeader.innerHTML = `
@@ -741,7 +724,6 @@
         `;
         card.appendChild(questionHeader);
 
-        // Options
         const optionsList = document.createElement('div');
         optionsList.className = "grid grid-cols-1 gap-2.5 pl-9";
         
@@ -763,7 +745,7 @@
       });
     }
 
-    // --- BUILD SOAL ESSAY ---
+    // --- DOM BUILDER: ESSAY ---
     function buildEssayQuestions() {
       const container = document.getElementById('essay-container');
       container.innerHTML = '';
@@ -785,7 +767,7 @@
         textarea.id = `textarea-${q.id}`;
         textarea.rows = 4;
         textarea.oninput = () => handleEssayInput(q.id, index + 1);
-        textarea.placeholder = "Tulis jawaban analitis lengkap Anda di sini...";
+        textarea.placeholder = "Tulis analisis jawaban komprehensif Anda di sini...";
         textarea.className = "w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-200 placeholder-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition leading-relaxed";
         
         card.appendChild(textarea);
@@ -793,7 +775,7 @@
       });
     }
 
-    // --- NAVIGASI SOAL ---
+    // --- DOM BUILDER: GRID NAVIGASI ---
     function buildNavigationGrids() {
       const pgGrid = document.getElementById('nav-pg-grid');
       pgGrid.innerHTML = '';
@@ -825,11 +807,10 @@
       }
     }
 
-    // --- SELECTION LOGIC ---
+    // --- INTERAKSI INPUT: PILIHAN GANDA ---
     function selectPGAnswer(questionId, key, indexNum) {
       if (!isExamActive) return;
 
-      // Remove active design from previous choices of the same question
       QUESTIONS_PG.find(q => q.id === questionId).options.forEach(opt => {
         const optBtn = document.getElementById(`opt-${questionId}-${opt.key}`);
         if (optBtn) {
@@ -839,7 +820,6 @@
         }
       });
 
-      // Style Selected Option
       pgAnswers[questionId] = key;
       const activeBtn = document.getElementById(`opt-${questionId}-${key}`);
       if (activeBtn) {
@@ -848,7 +828,6 @@
         keySpan.className = "w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-[10px] text-white shrink-0 font-mono opt-key";
       }
 
-      // Update Nav Grid
       const navBtn = document.getElementById(`nav-pg-${indexNum}`);
       if (navBtn) {
         navBtn.className = "aspect-square rounded-lg bg-indigo-600 border border-indigo-500 text-white text-xs font-bold font-mono transition flex items-center justify-center";
@@ -857,6 +836,7 @@
       updateStatusCount();
     }
 
+    // --- INTERAKSI INPUT: ESSAY ---
     function handleEssayInput(questionId, indexNum) {
       if (!isExamActive) return;
       const text = document.getElementById(`textarea-${questionId}`).value.trim();
@@ -882,7 +862,7 @@
       document.getElementById('nav-stat-answered').innerText = `${pgCount + essayCount} / 15`;
     }
 
-    // --- FORM SUBMIT LOGIN SISWA ---
+    // --- SUBMIT AUTHENTIKASI DATA SISWA ---
     document.getElementById('form-login').onsubmit = function(e) {
       e.preventDefault();
       studentName = document.getElementById('student-name').value.trim();
@@ -893,18 +873,15 @@
         return;
       }
 
-      // Setup exam screen
       document.getElementById('display-student-name').innerText = studentName;
       document.getElementById('display-student-class').innerText = `${studentClass} • SMK Negeri 1 Kasomalang`;
       
-      // Reset state
       pgAnswers = {};
       essayAnswers = {};
       cheatCount = 0;
       timeLeft = 2700;
       isExamActive = true;
 
-      // Reset UI Grids & Textareas
       QUESTIONS_PG.forEach((_, i) => {
         const btn = document.getElementById(`nav-pg-${i+1}`);
         if(btn) btn.className = "aspect-square rounded-lg bg-slate-950 border border-slate-800 text-slate-400 text-xs font-bold font-mono transition flex items-center justify-center";
@@ -915,7 +892,7 @@
         const text = document.getElementById(`textarea-${q.id}`);
         if(text) text.value = '';
       });
-      buildPGQuestions(); // Rebuild options design
+      buildPGQuestions(); 
       updateStatusCount();
       document.getElementById('nav-stat-cheat').innerText = `0 Pelanggaran (-0 Poin)`;
 
@@ -924,7 +901,7 @@
       showToast(`Selamat datang ${studentName}. Selamat mengerjakan!`, "success");
     };
 
-    // --- TIMER SYSTEM ---
+    // --- ENGINE TIMEOUT (DURASI HITUNG MUNDUR) ---
     function startTimer() {
       clearInterval(timerInterval);
       timerInterval = setInterval(() => {
@@ -932,7 +909,7 @@
         if (timeLeft <= 0) {
           clearInterval(timerInterval);
           timeLeft = 0;
-          submitExam(true); // Auto submit
+          submitExam(true); 
         }
 
         const min = Math.floor(timeLeft / 60);
@@ -942,7 +919,7 @@
       }, 1000);
     }
 
-    // --- ANTI-CHEAT ENGINE ---
+    // --- LIVE PROCTORING SYSTEM (ANTI-CHEAT) ---
     function setupAntiCheatDetection() {
       window.addEventListener('blur', () => {
         if (!isExamActive) return;
@@ -961,14 +938,9 @@
       cheatCount++;
       const penalty = cheatCount * penaltyPerCheat;
       
-      // Update UI HUD real-time
       document.getElementById('nav-stat-cheat').innerText = `${cheatCount} Pelanggaran (-${penalty} Poin)`;
-      
-      // Update modal warning pelanggaran
       document.getElementById('cheat-count-display').innerText = cheatCount;
       document.getElementById('cheat-penalty-display').innerText = `Potongan Nilai: -${penalty} Poin`;
-      
-      // Tampilkan modal peringatan
       document.getElementById('cheat-modal').classList.remove('hidden');
       
       showToast(`Pelanggaran ke-${cheatCount} dicatat! Potongan nilai: -${penalty} poin.`, "warning");
@@ -978,12 +950,8 @@
       document.getElementById('cheat-modal').classList.add('hidden');
     }
 
-    // --- GEMINI API INTELLIGENT EVALUATOR ---
-    async function evaluateEssayWithAI(answersObject, cheatedPenalty = false) {
-      // Walaupun ada cheatCount, kita tetap menilai jawaban essay secara penuh
-      // karena sistem konversi pelanggaran langsung dipotong di kalkulasi skor total akhir.
-
-      // Gabung soal dan jawaban agar hemat token prompt
+    // --- INTEGRASI WEB KOREKTOR GEMINI AI ---
+    async function evaluateEssayWithAI(answersObject) {
       const inputPayload = QUESTIONS_ESSAY.map((q, idx) => {
         const studentAns = answersObject[q.id] || "Siswa mengosongkan jawaban.";
         return `Soal ${idx+1}: ${q.question}\nJawaban Siswa: ${studentAns}\nSkor Maks: ${q.maxScore}`;
@@ -1011,7 +979,6 @@ Kriteria Penskoran (Maksimal 10 per soal):
 - 1-3: Jawaban terlalu singkat, asal, atau tidak nyambung sama sekali.
 - 0: Kosong / tidak menjawab.`;
 
-      // Gunakan eksponensial backoff untuk API call sesuai standard
       let retries = 5;
       let delay = 1000;
 
@@ -1050,13 +1017,13 @@ Kriteria Penskoran (Maksimal 10 per soal):
           if (rawText) {
             return JSON.parse(rawText);
           }
-          throw new Error("Invalid response format from Gemini API");
+          throw new Error("Format respons Gemini API tidak cocok");
 
         } catch (error) {
           retries--;
           if (retries === 0) {
             console.error("Gemini API call failed after retries:", error);
-            // Fallback evaluator jika API bermasalah total
+            // Fallback Engine Lokal apabila limitasi API tercapai
             return QUESTIONS_ESSAY.map(q => {
               const ans = answersObject[q.id] || "";
               const hasContent = ans.trim().length > 10;
@@ -1075,7 +1042,7 @@ Kriteria Penskoran (Maksimal 10 per soal):
       }
     }
 
-    // --- FORM SUBMIT EXAM ---
+    // --- FINALIZE & SUBMIT DATA ---
     function confirmSubmitModal() {
       document.getElementById('confirm-submit-modal').classList.remove('hidden');
     }
@@ -1085,14 +1052,14 @@ Kriteria Penskoran (Maksimal 10 per soal):
     }
 
     async function submitExam(forceSubmit = false) {
-      if (!currentUser) return; // Guard
+      if (!currentUser) return; 
       isExamActive = false;
       clearInterval(timerInterval);
       closeConfirmSubmitModal();
 
       switchPage('ai-evaluating');
 
-      // 1. Calculate PG Score (Max 50)
+      // 1. Akumulasi Poin Pilihan Ganda (Maks 50 Poin)
       let pgScore = 0;
       const pgDetails = [];
       QUESTIONS_PG.forEach(q => {
@@ -1108,7 +1075,7 @@ Kriteria Penskoran (Maksimal 10 per soal):
         });
       });
 
-      // 2. Calculate Essay Score via Gemini AI (Max 50)
+      // 2. Akumulasi Poin Esai via Gemini AI (Maks 50 Poin)
       let essayDetails = [];
       let essayTotalScore = 0;
 
@@ -1121,12 +1088,12 @@ Kriteria Penskoran (Maksimal 10 per soal):
         console.error("Evaluation error:", err);
       }
 
-      // 3. Konversi Pelanggaran Menjadi Penalti Nilai Akhir
+      // 3. Kalkulasi Pengurangan Skor Akibat Pelanggaran Layar
       const rawScore = pgScore + essayTotalScore;
       const totalPenalty = cheatCount * penaltyPerCheat;
       const finalScore = Math.max(0, rawScore - totalPenalty);
 
-      // 4. Save to Cloud Firestore (Rule 1 & Rule 3 Compliant Path)
+      // 4. Pengunggahan Berkas Ke Cloud Firestore (Path Bersarang Aman)
       const examResultData = {
         name: studentName,
         class: studentClass,
@@ -1145,8 +1112,7 @@ Kriteria Penskoran (Maksimal 10 per soal):
       };
 
       try {
-        // Correct Rule 1 path structure for Firebase Compat SDK
-        const examCollection = db.collection('artifacts/' + appId + '/public/data/student_exam_results');
+        const examCollection = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('student_exam_results');
         await examCollection.add(examResultData);
         showToast("Hasil ujian Anda berhasil disinkronkan ke Cloud Database!", "success");
       } catch (firestoreErr) {
@@ -1154,15 +1120,14 @@ Kriteria Penskoran (Maksimal 10 per soal):
         showToast("Gagal menyimpan ke server cloud, data tersimpan lokal.", "warning");
       }
 
-      // Display results to student
       displayResults(pgScore, essayTotalScore, finalScore, totalPenalty, essayDetails);
     }
 
+    // --- RENDER VISUAL REVIEW HASIL AKHIR ---
     function displayResults(pg, essay, total, penalty, feedbackList) {
       document.getElementById('result-pg-score').innerHTML = `${pg} <span class="text-xs text-slate-600">/ 50</span>`;
       document.getElementById('result-essay-score').innerHTML = `${essay} <span class="text-xs text-slate-600">/ 50</span>`;
       
-      // Format Tampilan Total Skor dengan Informasi Potongan Pelanggaran jika ada
       if (penalty > 0) {
         document.getElementById('result-total-score').innerHTML = `
           <div class="text-2xl font-black text-rose-400">${total} <span class="text-xs text-rose-500">(-${penalty} Poin)</span></div>
@@ -1172,7 +1137,6 @@ Kriteria Penskoran (Maksimal 10 per soal):
         document.getElementById('result-total-score').innerHTML = `${total} <span class="text-xs text-slate-600">/ 100</span>`;
       }
 
-      // Change badge color depending on score
       const badgeIcon = document.getElementById('result-badge-icon');
       if (total >= 75) {
         badgeIcon.className = "inline-block bg-emerald-500/10 text-emerald-400 p-4 rounded-full";
@@ -1186,7 +1150,6 @@ Kriteria Penskoran (Maksimal 10 per soal):
         document.getElementById('result-desc-header').innerText = "Perbanyak membaca dokumentasi W3Schools untuk meningkatkan pemahaman.";
       }
 
-      // Render AI Feedback list
       const container = document.getElementById('ai-feedback-container');
       container.innerHTML = '';
 
@@ -1220,12 +1183,12 @@ Kriteria Penskoran (Maksimal 10 per soal):
       switchPage('login');
     }
 
-    // --- REALTIME SYNC (PORTAL GURU/ADMIN) ---
+    // --- REKAP DATA REAL-TIME PANEL DASHBOARD GURU ---
     function setupRealtimeSync() {
-      if (!currentUser) return; // Guard - Rule 3 compliant
+      if (!currentUser || isSubscribed) return; 
+      isSubscribed = true;
       
-      // Rule 1 & Rule 2: Strict path and simple query only, NO complex where/orderby
-      const docRef = db.collection('artifacts/' + appId + '/public/data/student_exam_results');
+      const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('student_exam_results');
       docRef.onSnapshot((snapshot) => {
         studentsList = [];
         snapshot.forEach((doc) => {
@@ -1235,7 +1198,7 @@ Kriteria Penskoran (Maksimal 10 per soal):
           });
         });
         
-        // Sorting manually in Javascript to respect Rule 2
+        // Sorting data manual di sisi klien berdasarkan waktu kirim (Aturan 2)
         studentsList.sort((a, b) => {
           const timeA = a.timestamp ? a.timestamp.seconds : 0;
           const timeB = b.timestamp ? b.timestamp.seconds : 0;
@@ -1248,7 +1211,7 @@ Kriteria Penskoran (Maksimal 10 per soal):
       });
     }
 
-    // --- RENDER REKAP TABEL ADMIN ---
+    // --- RENDERING STRUKTUR TABEL CRUD ADMIN ---
     function renderAdminTable() {
       const filterClass = document.getElementById('filter-class').value;
       const tbody = document.getElementById('admin-table-body');
@@ -1262,7 +1225,7 @@ Kriteria Penskoran (Maksimal 10 per soal):
       document.getElementById('admin-stats-total').innerText = `Siswa: ${filtered.length}`;
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-slate-500">Belum ada siswa yang menyudahi ujian.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-slate-500">Belum ada siswa yang mengumpulkan jawaban.</td></tr>`;
         return;
       }
 
@@ -1273,13 +1236,11 @@ Kriteria Penskoran (Maksimal 10 per soal):
           tr.className = "bg-indigo-950/20 hover:bg-indigo-950/30 border-b border-indigo-500/20 cursor-pointer transition";
         }
         
-        // Click to view/edit
         tr.onclick = (e) => {
-          if (e.target.closest('button')) return; // Ignore if clicked action button
+          if (e.target.closest('button')) return; 
           selectStudentForAdmin(student);
         };
 
-        // Status Pelanggaran Design Helper
         let statusBadge = `<span class="bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-bold"><i class="fa-solid fa-shield mr-1"></i>Aman</span>`;
         if (student.cheatCount > 0) {
           const calculatedPenalty = student.cheatCount * penaltyPerCheat;
@@ -1304,7 +1265,7 @@ Kriteria Penskoran (Maksimal 10 per soal):
       });
     }
 
-    // --- PANEL ADMIN LOGIC ---
+    // --- SISTEM VALIDASI LOGIN PORTAL GURU ---
     document.getElementById('form-admin-login').onsubmit = function(e) {
       e.preventDefault();
       const pwd = document.getElementById('admin-password').value;
@@ -1314,7 +1275,7 @@ Kriteria Penskoran (Maksimal 10 per soal):
         switchPage('admin-dashboard');
         showToast("Selamat datang di Portal Administrasi Guru!", "success");
       } else {
-        showToast("Password admin salah!", "error");
+        showToast("Password pengawas salah!", "error");
       }
     };
 
@@ -1325,26 +1286,22 @@ Kriteria Penskoran (Maksimal 10 per soal):
       showToast("Berhasil keluar dari portal guru.", "info");
     }
 
+    // --- SELEKSI DATA UPDATE PANEL GURU ---
     function selectStudentForAdmin(student) {
       selectedStudent = student;
-      
-      // Update styling tabel
       renderAdminTable();
 
-      // Show form edit
       document.getElementById('admin-editor-placeholder').classList.add('hidden');
       const form = document.getElementById('form-admin-edit');
       form.classList.remove('hidden');
       document.getElementById('btn-cancel-select').classList.remove('hidden');
 
-      // Fill values
       document.getElementById('edit-student-name').value = student.name;
       document.getElementById('edit-student-class').value = student.class;
       document.getElementById('edit-student-pg').value = student.pgScore;
       document.getElementById('edit-student-essay').value = student.essayScore;
       document.getElementById('edit-student-cheat').value = student.cheatCount;
 
-      // Render AI Feedback
       const container = document.getElementById('admin-ai-feedback');
       container.innerHTML = '';
 
@@ -1353,7 +1310,6 @@ Kriteria Penskoran (Maksimal 10 per soal):
           const div = document.createElement('div');
           div.className = "bg-slate-950 p-3 rounded-lg border border-slate-850 text-xs space-y-1.5";
           
-          // Cari soal
           const originalSoal = QUESTIONS_ESSAY.find(q => q.id === feedback.id)?.question || '-';
           const originalJawab = student.answers?.essay?.[feedback.id] || "Siswa mengosongkan jawaban.";
 
@@ -1369,7 +1325,7 @@ Kriteria Penskoran (Maksimal 10 per soal):
           container.appendChild(div);
         });
       } else {
-        container.innerHTML = `<p class="text-xs text-slate-500 italic">Siswa ini tidak mengikuti uji koreksi AI (jawaban esai kosong).</p>`;
+        container.innerHTML = `<p class="text-xs text-slate-500 italic">Jawaban esai kosong / Tidak mengikuti uji AI.</p>`;
       }
     }
 
@@ -1381,7 +1337,7 @@ Kriteria Penskoran (Maksimal 10 per soal):
       renderAdminTable();
     }
 
-    // --- SAVE ADMIN MANUAL EDIT ---
+    // --- OPERASI UPDATE NILAI MANUAL (GURU) ---
     document.getElementById('form-admin-edit').onsubmit = async function(e) {
       e.preventDefault();
       if (!selectedStudent || !currentUser) return;
@@ -1392,7 +1348,6 @@ Kriteria Penskoran (Maksimal 10 per soal):
       const newEssay = parseInt(document.getElementById('edit-student-essay').value) || 0;
       const newCheat = parseInt(document.getElementById('edit-student-cheat').value) || 0;
 
-      // Kalkulasi total skor setelah dikurangi pelanggaran sesuai aturan baru
       const totalScoreBeforePenalty = newPG + newEssay;
       const calculatedPenalty = newCheat * penaltyPerCheat;
       const total = Math.max(0, totalScoreBeforePenalty - calculatedPenalty);
@@ -1409,22 +1364,22 @@ Kriteria Penskoran (Maksimal 10 per soal):
       };
 
       try {
-        const docRef = db.doc('artifacts/' + appId + '/public/data/student_exam_results/' + selectedStudent.id);
+        const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('student_exam_results').doc(selectedStudent.id);
         await docRef.update(updateData);
-        showToast("Perubahan nilai siswa sukses disimpan!", "success");
+        showToast("Perubahan data nilai siswa berhasil disimpan!", "success");
         setSelectedStudentNull();
       } catch (err) {
         console.error("Update error:", err);
-        showToast("Gagal mengupdate database.", "error");
+        showToast("Gagal memperbarui database cloud.", "error");
       }
     };
 
-    // --- DELETE RESULT ---
+    // --- OPERASI DELETE DATA (GURU) ---
     async function deleteStudentResult(id) {
       if (!currentUser) return;
       if (confirm("Apakah Anda yakin ingin menghapus data nilai siswa ini secara permanen dari server?")) {
         try {
-          const docRef = db.doc('artifacts/' + appId + '/public/data/student_exam_results/' + id);
+          const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('student_exam_results').doc(id);
           await docRef.delete();
           showToast("Data nilai siswa berhasil dihapus.", "info");
           if (selectedStudent && selectedStudent.id === id) {
@@ -1432,12 +1387,12 @@ Kriteria Penskoran (Maksimal 10 per soal):
           }
         } catch (err) {
           console.error("Delete error:", err);
-          showToast("Gagal menghapus data.", "error");
+          showToast("Gagal menghapus data dari server.", "error");
         }
       }
     }
 
-    // --- TOAST NOTIFICATION ---
+    // --- COMPONENT: NOTIFIKASI TOAST POPUP ---
     function showToast(message, type = "info") {
       const container = document.getElementById('toast-container');
       const card = document.getElementById('toast-card');
@@ -1445,7 +1400,6 @@ Kriteria Penskoran (Maksimal 10 per soal):
 
       text.innerText = message;
       
-      // Styling type
       if (type === "success") {
         card.className = "p-4 rounded-xl shadow-2xl border bg-slate-900 text-emerald-400 border-emerald-500/30 flex items-center gap-2";
         text.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${message}`;
