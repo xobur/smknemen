@@ -192,7 +192,7 @@
 
       <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
         <div class="p-3 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
-          <h3 class="text-xs font-bold font-mono">REKAP NILAI REAL-TIME CLOUD</h3>
+          <h3 class="text-xs font-bold font-mono">REKAP NILAI REAL-TIME CLUID</h3>
           <select id="adminFilterKelas" onchange="renderAdminTable()" class="bg-slate-950 border border-slate-800 text-[11px] rounded p-1 focus:outline-none cursor-pointer">
             <option value="Semua">Semua Kelas</option>
             <option value="X RPL A">X RPL A</option>
@@ -228,24 +228,28 @@
   </footer>
 
   <script>
-    // 1. KREDENSIAL FIREBASE CLOUD REALTIME
+    // 1. KREDENSIAL FIREBASE CLOUD REALTIME (PERBAIKAN: DATABASE URL DITAMBAHKAN)
     const firebaseConfig = {
       apiKey: "AIzaSyA0JMd4wG3jJ8R7AODP1k3NAOsjJiGYPy8",
       authDomain: "smknekas-2026.firebaseapp.com",
       projectId: "smknekas-2026",
-      databaseURL: "https://smknekas-2026-default-rtdb.firebaseio.com"
+      storageBucket: "smknekas-2026.firebasestorage.app",
+      messagingSenderId: "487609232066",
+      appId: "1:487609232066:web:564dfdf411cbdabf6d295b",
+      measurementId: "G-8XQM3BKBWL",
+      databaseURL: "https://smknekas-2026-default-rtdb.firebaseio.com" // <-- JALUR UTAMA DATABASE REALTIME NYA DI SINI
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 2. DATA INSTRUMEN SOAL (HTML Entities diganti murni menggunakan fungsi pengaman)
+    // 2. DATA INSTRUMEN SOAL SAFE TEXT CODES
     const SOAL_EXAM = {
       pilihanGanda: [
-        { id: "pg1", pertanyaan: "Diberikan potongan kode: <code class='bg-slate-900 text-amber-400 px-1 rounded'>&lt;a href='contact.html'&gt; &lt;img src='mail.png' alt='Hubungi Kami'&gt; &lt;/a&gt;</code>. Mengapa struktur penulisan elemen ini dianggap sebagai praktik terbaik (best practice) dalam aksesibilitas web?", pilihan: { A: "Karena tag gambar memaksa browser membuat baris baru di dalam link.", B: "Atribut alt memberikan deskripsi alternatif bagi pengguna pembaca layar (screen reader) saat gambar berfungsi sebagai tautan.", C: "Karena elemen a tidak boleh berdiri sendiri tanpa adanya elemen gambar di dalamnya.", D: "Penggunaan tag gambar di dalam link secara otomatis mempercepat waktu pemuatan halaman web." }, jawabanBenar: "B" },
+        { id: "pg1", pertanyaan: "Diberikan potongan kode: <code class='bg-slate-900 text-amber-400 px-1 rounded'>&lt;a href='contact.html'&gt; &lt;img src='mail.png' alt='Hubungi Kami'&gt; &lt;/a&gt;</code>. Mengapa struktur penulisan elemen ini dianggap sebagai praktik terbaik (best practice) dalam aksesibilitas web?", pilihan: { A: "Because tag gambar memaksa browser membuat baris baru di dalam link.", B: "Atribut alt memberikan deskripsi alternatif bagi pengguna pembaca layar (screen reader) saat gambar berfungsi sebagai tautan.", C: "Karena elemen a tidak boleh berdiri sendiri tanpa adanya elemen gambar di dalamnya.", D: "Penggunaan tag gambar di dalam link secara otomatis mempercepat waktu pemuatan halaman web." }, jawabanBenar: "B" },
         { id: "pg2", pertanyaan: "Seorang siswa menulis kode berikut:<br><pre class='bg-slate-900 text-indigo-300 p-2 rounded mt-1 font-mono text-[11px]'>&lt;ul type='1'&gt;\n  &lt;li&gt;Analisis&lt;/li&gt;\n  &lt;li&gt;Desain&lt;/li&gt;\n&lt;/ul&gt;</pre>Namun, daftar yang muncul tetap menggunakan simbol bullet bulat, bukan angka. Analisis mengapa kesalahan ini terjadi!", pilihan: { A: "Tag ul hanya mendukung type 'disc', 'circle', dan 'square'. Jika ingin daftar berangka (1, 2, 3), harus menggunakan tag &lt;ol&gt;.", B: "Browser tidak mendukung atribut type pada elemen list.", C: "Atribut type harus diletakkan pada tag list, bukan pada tag pembuka ul.", D: "Siswa lupa menutup tag ul dengan tag list." }, jawabanBenar: "A" },
         { id: "pg3", pertanyaan: "Perhatikan cuplikan dokumen berikut:<br><code class='bg-slate-900 text-red-400 p-1 rounded font-mono text-[11px]'>&lt;div&gt;&lt;p&gt;Paragraf Pertama &lt;span&gt;di dalam span&lt;/p&gt; yang terputus&lt;/span&gt;&lt;/div&gt;</code><br>Bagaimana browser modern merender kode HTML yang memiliki tumpang tindih (overlapping tags) seperti di atas?", pilihan: { A: "Browser akan menghentikan proses rendering halaman dan menampilkan error fatal (white screen).", B: "Tag span otomatis dihapus dan teks di dalamnya digabungkan ke elemen div terluar.", C: "Browser melakukan auto-correction DOM tree, tetapi berisiko merusak struktur layout CSS karena penutupan elemen yang tidak valid secara semantik.", D: "Browser akan menampilkan pesan pop-up peringatan kepada pengunjung web mengenai kerusakan tag." }, jawabanBenar: "C" },
-        { id: "pg4", presidential: "", pertanyaan: "Anda ingin membuat form pencarian yang secara otomatis mengarahkan fokus kursor ke input teks segera setelah halaman web dimuat tanpa mengharuskan pengguna mengekliknya terlebih dahulu. Atribut HTML5 mana yang paling efisien digunakan?", pilihan: { A: "&lt;input type='text' focus='true'&gt;", B: "&lt;input type='text' autofocus&gt;", C: "&lt;input type='text' required&gt;", D: "&lt;input type='text' placeholder='Cari...' active&gt;" }, jawabanBenar: "B" },
+        { id: "pg4", pertanyaan: "Anda ingin membuat form pencarian yang secara otomatis mengarahkan fokus kursor ke input teks segera setelah halaman web dimuat tanpa mengharuskan pengguna mengekliknya terlebih dahulu. Atribut HTML5 mana yang paling efisien digunakan?", pilihan: { A: "&lt;input type='text' focus='true'&gt;", B: "&lt;input type='text' autofocus&gt;", C: "&lt;input type='text' required&gt;", D: "&lt;input type='text' placeholder='Cari...' active&gt;" }, jawabanBenar: "B" },
         { id: "pg5", pertanyaan: "Perhatikan struktur navigasi berikut:<br><code class='bg-slate-900 text-indigo-300 p-1 rounded font-mono text-[11px]'>&lt;nav&gt; &lt;a href='#section1'&gt;Home&lt;/a&gt; | &lt;a href='#section2'&gt;Profile&lt;/a&gt; &lt;/nav&gt;</code><br>Apa arti dari nilai atribut href yang diawali simbol '#' (hash) tersebut?", pilihan: { A: "Tautan eksternal yang merujuk pada server web terenkripsi (Secure HTTPS).", B: "Perintah bagi browser untuk mengunduh dokumen lokal bernama section1.", C: "Penanda jangkar (anchor) untuk berpindah ke elemen dengan ID tertentu pada halaman yang sama.", D: "Tautan mati (broken link) yang belum ditentukan alamat tujuannya." }, jawabanBenar: "C" },
         { id: "pg6", pertanyaan: "Mengapa penggunaan tag semantik seperti &lt;header&gt;, &lt;article&gt;, &lt;section&gt;, dan &lt;footer&gt; sangat direkomendasikan dibandingkan penggunaan tumpukan tag &lt;div&gt; yang berlebihan?", pilihan: { A: "Tag semantik memberikan struktur dokumen yang bermakna bagi mesin pencari (SEO) dan teknologi asistif, serta mempermudah pemeliharaan kode.", B: "Tag semantik secara otomatis menerapkan styling CSS modern tanpa memerlukan file stylesheet eksternal.", C: "Penggunaan tag semantik dapat mengurangi ukuran file HTML hingga lebih dari 50%.", D: "Tag div sudah dinyatakan usang (deprecated) dan tidak didukung lagi di standar HTML5." }, jawabanBenar: "A" },
         { id: "pg7", pertanyaan: "Jika sebuah gambar gagal dimuat akibat koneksi internet terputus, elemen apa yang akan ditampilkan di layar jika kode ditulis sebagai: <code class='bg-slate-900 text-amber-400 px-1 rounded'>&lt;img src='logo.png' alt='Logo SMKN X' width='100'&gt;</code>?", pilihan: { A: "Layar kosong (blank) karena seluruh halaman gagal dirender oleh browser.", B: "Kotak kosong berukuran 100px yang menampilkan teks alternatif 'Logo SMKN X'.", C: "Browser akan mengunduh gambar pengganti secara otomatis dari repositori Google Images.", D: "Ikon tanda tanya besar berwarna merah di pojok kiri atas halaman." }, jawabanBenar: "B" },
@@ -301,7 +305,7 @@
     });
     window.closeJumpscare = function() { document.getElementById("jumpscareOverlay").classList.add("hidden"); }
 
-    // --- AUTH GURU ---
+    // --- AUTH GURU (Sandi: Tajama21) ---
     window.authAdmin = function(e) {
       e.preventDefault();
       if (document.getElementById("adminPassword").value === "Tajama21") {
@@ -410,6 +414,7 @@
         waktuMulai: `Pukul ${new Date().toLocaleTimeString('id-ID')}`
       };
 
+      // Jalur pengiriman data aman cloud
       db.ref("rekap_siswa").push(payloadCloud);
 
       document.getElementById("resSkorPG").innerText = skorPG;
@@ -420,7 +425,7 @@
       switchView("resultPage");
     }
 
-    // --- REKAP TABEL ADMIN PANEL ---
+    // --- REKAP TABEL GURU REAL-TIME ---
     window.renderAdminTable = function() {
       const filter = document.getElementById("adminFilterKelas").value;
       const tbody = document.getElementById("adminTableBody");
@@ -455,7 +460,7 @@
       }
     }
 
-    // --- MINI GAME: REFRESHER LOGIC ---
+    // --- MINI GAME REFLECTION WORK ---
     window.openMiniGame = function() { document.getElementById("miniGameContainer").classList.remove("hidden"); }
     window.closeMiniGame = function() { stopGame(); document.getElementById("miniGameContainer").classList.add("hidden"); }
     
